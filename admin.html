@@ -714,8 +714,23 @@ function saveAll(){
     localStorage.setItem('weddingStations',JSON.stringify(STATION_INFO));
     localStorage.setItem('weddingMenu',JSON.stringify(MENU));
     localStorage.setItem('weddingFP',JSON.stringify({elements:fpElements,idCtr:fpIdCtr}));
-    showToast('Saved ✓');
-  } catch(e){ showToast('Save failed: storage full?'); }
+  } catch(e){ showToast('Save failed: storage full?'); return; }
+  // Also save floor plan + stations + menu to DB
+  const fpData={elements:fpElements,idCtr:fpIdCtr};
+  fetch('/.netlify/functions/floorplan',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(fpData)
+  }).catch(err=>console.warn('FP save failed',err));
+  fetch('/.netlify/functions/settings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      stationInfo: JSON.stringify(STATION_INFO),
+      menuData: JSON.stringify(MENU)
+    })
+  }).catch(err=>console.warn('Settings save failed',err));
+  showToast('Saved ✓');
 }
 
 // ════════════════════════════════════
