@@ -234,6 +234,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
   <div class="tab" onclick="switchTab('menu',this)">🍽 Menu</div>
   <div class="tab" onclick="switchTab('fp',this)">🗺 Floor Plan</div>
   <div class="tab" onclick="switchTab('attendance',this);loadAttendance()">✅ Attendance</div>
+  <div class="tab" onclick="switchTab('luckydraw',this);loadLuckyDraw()">🎟 Lucky Draw</div>
 </div>
 
 <!-- TAB BODY -->
@@ -541,6 +542,41 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
       </div>
     </div>
   </div>
+<!-- LUCKY DRAW -->
+  <div class="tab-panel" id="luckydrawPanel">
+    <div style="max-width:860px;margin:0 auto;">
+      <div class="section">
+        <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Lucky Draw Collection</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span id="luckyDrawSummary" style="font-size:.72rem;color:var(--text-dim);"></span>
+            <button class="btn" onclick="loadLuckyDraw()">↻ Refresh</button>
+            <button class="btn" onclick="exportLuckyDrawCSV()">⬇ Export CSV</button>
+          </div>
+        </div>
+        <div class="section-body">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <input id="luckyDrawSearch" type="text" placeholder="Search name or table…"
+              oninput="filterLuckyDraw()"
+              style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
+            <select id="luckyDrawTableFilter" onchange="filterLuckyDraw()"
+              style="padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
+              <option value="">All Tables</option>
+            </select>
+          </div>
+          <div id="luckyDrawList" style="min-height:120px;">
+            <p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">Click the Lucky Draw tab to load.</p>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head">Table Summary</div>
+        <div class="section-body">
+          <div id="luckyDrawTableSummary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div><!-- /tab-body -->
 </div><!-- /app -->
@@ -643,6 +679,10 @@ function switchTab(id, el){
   if(id!=='attendance' && attendanceTimer){
     clearInterval(attendanceTimer);
     attendanceTimer=null;
+  }
+  if(id!=='luckydraw' && luckyDrawTimer){
+    clearInterval(luckyDrawTimer);
+    luckyDrawTimer=null;
   }
 }
   
@@ -1286,7 +1326,109 @@ function exportAttendanceCSV(){
   a.download='attendance.csv';
   a.click();
 }
+// ════════════════════════════════════
+// LUCKY DRAW
+// ════════════════════════════════════
+let allLuckyDraw=[];
+let luckyDrawTimer=null;
 
+function loadLuckyDraw(){
+  const list=document.getElementById('luckyDrawList');
+  list.innerHTML='<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">Loading…</p>';
+  fetch('/.netlify/functions/luckydraw')
+    .then(r=>r.json())
+    .then(data=>{
+      allLuckyDraw=data;
+      populateLuckyDrawFilter();
+      renderLuckyDraw(data);
+      renderLuckyDrawSummary(data);
+    })
+    .catch(()=>{
+      list.innerHTML='<p style="color:#e57373;font-size:.82rem;">Could not load.</p>';
+    });
+  if(!luckyDrawTimer){
+    luckyDrawTimer=setInterval(()=>{
+      fetch('/.netlify/functions/luckydraw')
+        .then(r=>r.json())
+        .then(data=>{
+          allLuckyDraw=data;
+          populateLuckyDrawFilter();
+          renderLuckyDraw(data);
+          renderLuckyDrawSummary(data);
+        }).catch(()=>{});
+    },15000);
+  }
+}
+
+function populateLuckyDrawFilter(){
+  const sel=document.getElementById('luckyDrawTableFilter');
+  const tables=[...new Set(allLuckyDraw.map(c=>c.table_no))].sort((a,b)=>isNaN(a)||isNaN(b)?a.localeCompare(b):Number(a)-Number(b));
+  sel.innerHTML='<option value="">All Tables</option>'+tables.map(t=>`<option value="${t}">Table ${t}</option>`).join('');
+}
+
+function filterLuckyDraw(){
+  const q=document.getElementById('luckyDrawSearch').value.trim().toLowerCase();
+  const t=document.getElementById('luckyDrawTableFilter').value;
+  const filtered=allLuckyDraw.filter(c=>c.name.toLowerCase().includes(q)&&(!t||c.table_no===t));
+  renderLuckyDraw(filtered);
+}
+
+function renderLuckyDraw(data){
+  const total=guests.length||'?';
+  document.getElementById('luckyDrawSummary').textContent=`${data.length} collected / ${total} total`;
+  if(!data.length){
+    document.getElementById('luckyDrawList').innerHTML='<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">No collections yet.</p>';
+    return;
+  }
+  let html=`<table class="preview-table" style="width:100%;"><thead><tr>
+    <th>#</th><th>Name</th><th>Table</th><th>Collected At</th>
+  </tr></thead><tbody>`;
+  data.forEach((c,i)=>{
+    const t=new Date(c.collected_at);
+    const time=isNaN(t)?c.collected_at:t.toLocaleString('en-SG',{dateStyle:'short',timeStyle:'short'});
+    html+=`<tr>
+      <td style="color:var(--text-dim);width:36px;">${i+1}</td>
+      <td><strong style="color:var(--text)">${escHtml(c.name)}</strong></td>
+      <td><span style="background:#4a9e9e;color:#fff;padding:2px 8px;border-radius:2px;font-size:.7rem;">Table ${escHtml(c.table_no)}</span></td>
+      <td style="color:var(--text-dim);font-size:.78rem;">${escHtml(time)}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('luckyDrawList').innerHTML=html;
+}
+
+function renderLuckyDrawSummary(data){
+  const collectedMap={};
+  data.forEach(c=>{collectedMap[c.table_no]=(collectedMap[c.table_no]||0)+1;});
+  const totalMap={};
+  guests.forEach(g=>{totalMap[g.table]=(totalMap[g.table]||0)+1;});
+  const tables=[...new Set([...Object.keys(collectedMap),...Object.keys(totalMap)])].sort((a,b)=>isNaN(a)||isNaN(b)?a.localeCompare(b):Number(a)-Number(b));
+  const html=tables.map(t=>{
+    const collected=collectedMap[t]||0;
+    const total=totalMap[t]||'?';
+    const pct=totalMap[t]?Math.round(collected/totalMap[t]*100):0;
+    const full=totalMap[t]&&collected>=totalMap[t];
+    return `<div style="background:var(--surface);border:1px solid ${full?'#4a9e9e':'var(--border)'};border-radius:4px;padding:12px 14px;">
+      <div style="font-size:.65rem;letter-spacing:.12em;color:var(--text-dim);margin-bottom:4px;">TABLE ${t}</div>
+      <div style="font-size:1.3rem;font-weight:600;color:${full?'#4a9e9e':'var(--text)'};">${collected}<span style="font-size:.8rem;font-weight:400;color:var(--text-dim);"> / ${total}</span></div>
+      <div style="margin-top:6px;height:3px;background:var(--border);border-radius:2px;">
+        <div style="height:100%;width:${pct}%;background:#4a9e9e;border-radius:2px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('luckyDrawTableSummary').innerHTML=html||'<p style="color:var(--text-dim);font-size:.82rem;font-style:italic;">No data yet.</p>';
+}
+
+function exportLuckyDrawCSV(){
+  if(!allLuckyDraw.length){showToast('No collections to export');return;}
+  const rows=[['Name','Table','Collected At'],...allLuckyDraw.map(c=>[c.name,c.table_no,c.collected_at])];
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='luckydraw.csv';
+  a.click();
+}
+  
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
