@@ -528,6 +528,11 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
               style="padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
               <option value="">All Tables</option>
             </select>
+            <select id="attendanceStatusFilter" onchange="filterAttendance()"
+              style="padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
+              <option value="checked">✓ Checked In</option>
+              <option value="not-checked">✗ Not Checked In</option>
+            </select>
           </div>
           <div id="attendanceList" style="min-height:120px;">
             <p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">Click the Attendance tab to load check-ins.</p>
@@ -562,6 +567,11 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
             <select id="luckyDrawTableFilter" onchange="filterLuckyDraw()"
               style="padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
               <option value="">All Tables</option>
+            </select>
+            <select id="luckyDrawStatusFilter" onchange="filterLuckyDraw()"
+              style="padding:8px 12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;border-radius:2px;">
+              <option value="collected">✓ Collected</option>
+              <option value="not-collected">✗ Not Collected</option>
             </select>
           </div>
           <div id="luckyDrawList" style="min-height:120px;">
@@ -1259,34 +1269,60 @@ function populateTableFilter(){
 function filterAttendance(){
   const q=document.getElementById('attendanceSearch').value.trim().toLowerCase();
   const t=document.getElementById('attendanceTableFilter').value;
-  const filtered=allCheckins.filter(c=>{
-    const nameMatch=c.name.toLowerCase().includes(q);
-    const tableMatch=!t||c.table_no===t;
-    return nameMatch&&tableMatch;
-  });
-  renderAttendance(filtered);
+  const status=document.getElementById('attendanceStatusFilter').value;
+  const checkedNames=new Set(allCheckins.map(c=>c.name.toLowerCase()));
+
+  let list;
+  if(status==='not-checked'){
+    // Show guests who have NOT checked in
+    list=guests
+      .filter(g=>{
+        const n=(g.name||g.alias||Object.values(g)[0]||'').toLowerCase();
+        const tableMatch=!t||g.table===t;
+        const nameMatch=!q||n.includes(q);
+        return !checkedNames.has(n)&&tableMatch&&nameMatch;
+      })
+      .map(g=>({
+        name:g.name||g.alias||Object.values(g)[0]||'',
+        table_no:g.table,
+        checked_in_at:null
+      }));
+  } else {
+    list=allCheckins.filter(c=>{
+      const nameMatch=!q||c.name.toLowerCase().includes(q);
+      const tableMatch=!t||c.table_no===t;
+      return nameMatch&&tableMatch;
+    });
+  }
+  renderAttendance(list, status==='not-checked');
 }
 
-function renderAttendance(data){
+function renderAttendance(data, showMissing=false){
   const total=guests.length||'?';
-  document.getElementById('attendanceSummary').textContent=`${data.length} checked in${allCheckins!==data?' (filtered)':''} / ${total} total`;
+  document.getElementById('attendanceSummary').textContent=
+    showMissing
+      ? `${data.length} not yet checked in / ${total} total`
+      : `${data.length} checked in / ${total} total`;
 
   if(!data.length){
-    document.getElementById('attendanceList').innerHTML='<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">No check-ins yet.</p>';
+    document.getElementById('attendanceList').innerHTML=`<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">${showMissing?'Everyone has checked in! 🎉':'No check-ins yet.'}</p>`;
     return;
   }
-  let html=`<table class="preview-table" style="width:100%;">
-    <thead><tr>
-      <th>#</th><th>Name</th><th>Table</th><th>Checked In At</th>
-    </tr></thead><tbody>`;
+  let html=`<table class="preview-table" style="width:100%;"><thead><tr>
+    <th>#</th><th>Name</th><th>Table</th><th>${showMissing?'Status':'Checked In At'}</th>
+  </tr></thead><tbody>`;
   data.forEach((c,i)=>{
-    const t=new Date(c.checked_in_at);
-    const time=isNaN(t)?c.checked_in_at:t.toLocaleString('en-SG',{dateStyle:'short',timeStyle:'short'});
+    const time=c.checked_in_at
+      ? new Date(c.checked_in_at).toLocaleString('en-SG',{dateStyle:'short',timeStyle:'short'})
+      : '—';
+    const badge=showMissing
+      ? `<span style="font-size:.7rem;padding:2px 8px;border-radius:2px;background:rgba(229,115,115,.15);color:#e57373;border:1px solid rgba(229,115,115,.3);">Not checked in</span>`
+      : `<span style="font-size:.7rem;">${escHtml(time)}</span>`;
     html+=`<tr>
       <td style="color:var(--text-dim);width:36px;">${i+1}</td>
       <td><strong style="color:var(--text)">${escHtml(c.name)}</strong></td>
       <td><span style="background:var(--gold);color:#fff;padding:2px 8px;border-radius:2px;font-size:.7rem;">Table ${escHtml(c.table_no)}</span></td>
-      <td style="color:var(--text-dim);font-size:.78rem;">${escHtml(time)}</td>
+      <td>${badge}</td>
     </tr>`;
   });
   html+='</tbody></table>';
@@ -1369,28 +1405,58 @@ function populateLuckyDrawFilter(){
 function filterLuckyDraw(){
   const q=document.getElementById('luckyDrawSearch').value.trim().toLowerCase();
   const t=document.getElementById('luckyDrawTableFilter').value;
-  const filtered=allLuckyDraw.filter(c=>c.name.toLowerCase().includes(q)&&(!t||c.table_no===t));
-  renderLuckyDraw(filtered);
+  const status=document.getElementById('luckyDrawStatusFilter').value;
+  const collectedNames=new Set(allLuckyDraw.map(c=>c.name.toLowerCase()));
+
+  let list;
+  if(status==='not-collected'){
+    list=guests
+      .filter(g=>{
+        const n=(g.name||g.alias||Object.values(g)[0]||'').toLowerCase();
+        const tableMatch=!t||g.table===t;
+        const nameMatch=!q||n.includes(q);
+        return !collectedNames.has(n)&&tableMatch&&nameMatch;
+      })
+      .map(g=>({
+        name:g.name||g.alias||Object.values(g)[0]||'',
+        table_no:g.table,
+        collected_at:null
+      }));
+  } else {
+    list=allLuckyDraw.filter(c=>{
+      const nameMatch=!q||c.name.toLowerCase().includes(q);
+      const tableMatch=!t||c.table_no===t;
+      return nameMatch&&tableMatch;
+    });
+  }
+  renderLuckyDraw(list, status==='not-collected');
 }
 
-function renderLuckyDraw(data){
+function renderLuckyDraw(data, showMissing=false){
   const total=guests.length||'?';
-  document.getElementById('luckyDrawSummary').textContent=`${data.length} collected / ${total} total`;
+  document.getElementById('luckyDrawSummary').textContent=
+    showMissing
+      ? `${data.length} not yet collected / ${total} total`
+      : `${data.length} collected / ${total} total`;
   if(!data.length){
-    document.getElementById('luckyDrawList').innerHTML='<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">No collections yet.</p>';
+    document.getElementById('luckyDrawList').innerHTML=`<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">${showMissing?'Everyone has collected! 🎉':'No collections yet.'}</p>`;
     return;
   }
   let html=`<table class="preview-table" style="width:100%;"><thead><tr>
-    <th>#</th><th>Name</th><th>Table</th><th>Collected At</th>
+    <th>#</th><th>Name</th><th>Table</th><th>${showMissing?'Status':'Collected At'}</th>
   </tr></thead><tbody>`;
   data.forEach((c,i)=>{
-    const t=new Date(c.collected_at);
-    const time=isNaN(t)?c.collected_at:t.toLocaleString('en-SG',{dateStyle:'short',timeStyle:'short'});
+    const time=c.collected_at
+      ? new Date(c.collected_at).toLocaleString('en-SG',{dateStyle:'short',timeStyle:'short'})
+      : '—';
+    const badge=showMissing
+      ? `<span style="font-size:.7rem;padding:2px 8px;border-radius:2px;background:rgba(229,115,115,.15);color:#e57373;border:1px solid rgba(229,115,115,.3);">Not collected</span>`
+      : `<span style="font-size:.7rem;">${escHtml(time)}</span>`;
     html+=`<tr>
       <td style="color:var(--text-dim);width:36px;">${i+1}</td>
       <td><strong style="color:var(--text)">${escHtml(c.name)}</strong></td>
       <td><span style="background:#4a9e9e;color:#fff;padding:2px 8px;border-radius:2px;font-size:.7rem;">Table ${escHtml(c.table_no)}</span></td>
-      <td style="color:var(--text-dim);font-size:.78rem;">${escHtml(time)}</td>
+      <td>${badge}</td>
     </tr>`;
   });
   html+='</tbody></table>';
