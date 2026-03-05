@@ -935,9 +935,12 @@ function renderMenu(){
   sec.style.display='';
   let html='';
   if(MENU.note) html+='<p class="menu-note">'+esc(MENU.note)+'</p>';
-  if(MENU.mode==='image'&&MENU.image){
-    html+='<img class="menu-img-display" src="'+MENU.image+'" alt="Menu" onclick="openLightbox(this.src)" title="Click to enlarge">';
-    html+='<p style="font-size:.68rem;color:var(--mid);text-align:center;margin-top:6px;letter-spacing:.06em;">Tap image to enlarge</p>';
+  const menuImgs=MENU.images||(MENU.image?[MENU.image]:[]);
+  if(MENU.mode==='image'&&menuImgs.length){
+    menuImgs.forEach(src=>{
+      html+='<img class="menu-img-display" src="'+src+'" alt="Menu" onclick="openLightbox(this.src)" title="Click to enlarge" style="margin-bottom:10px;">';
+    });
+    html+='<p style="font-size:.68rem;color:var(--mid);text-align:center;margin-top:2px;letter-spacing:.06em;">Tap image to enlarge</p>';
   }
   if(MENU.mode!=='image'&&MENU.courses&&MENU.courses.length){
     MENU.courses.forEach(c=>{
