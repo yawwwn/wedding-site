@@ -249,6 +249,14 @@ const searchInput = document.getElementById('searchInput');
 searchInput.disabled = true;
 searchInput.placeholder = 'Loading guest list…';
 
+// Load feature flags
+fetch('/.netlify/functions/settings')
+  .then(r=>r.json())
+  .then(s=>{
+    window._settings = s;
+  })
+  .catch(()=>{ window._settings={}; });
+
 fetch('/.netlify/functions/get-guests')
   .then(r=>r.json())
   .then(data=>{
@@ -365,8 +373,15 @@ function showResult(guest){
     renderTablemates(mates, guest, checkedNames, luckyNames);
   }).catch(()=>renderTablemates(mates, guest, new Set(), new Set()));
   setTimeout(()=>document.querySelector('.result-header').scrollIntoView({behavior:'smooth',block:'start'}),120);
-  setTimeout(restoreCheckinState,200);
-  setTimeout(restoreCheckinState,200);
+  setTimeout(()=>{
+    const s = window._settings || {};
+    const checkinOn = s.checkin_enabled !== 'false';
+    const luckyOn   = s.luckydraw_enabled !== 'false';
+    document.getElementById('checkinBtn').closest('div').style.display = checkinOn ? '' : 'none';
+    document.getElementById('luckyDrawBtn').closest('div').style.display = luckyOn ? '' : 'none';
+    restoreCheckinState();
+    restoreLuckyDrawState();
+  }, 200);
   setTimeout(restoreLuckyDrawState,200);
 }
 function renderTablemates(mates, guest, checkedNames, luckyNames){
