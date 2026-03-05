@@ -392,6 +392,20 @@ function showResult(guest){
     });
 }
 
+  function refreshTablemates(){
+  if(!activeGuest) return;
+  const table=activeGuest.table;
+  const mates=guests.filter(g=>g.table===table);
+  Promise.all([
+    fetch('/.netlify/functions/attendance').then(r=>r.json()).catch(()=>[]),
+    fetch('/.netlify/functions/luckydraw').then(r=>r.json()).catch(()=>[])
+  ]).then(([checkins,lucky])=>{
+    const checkedNames=new Set((Array.isArray(checkins)?checkins:[]).map(c=>c.name.toLowerCase()));
+    const luckyNames=new Set((Array.isArray(lucky)?lucky:[]).map(c=>c.name.toLowerCase()));
+    renderTablemates(mates,activeGuest,checkedNames,luckyNames);
+  });
+}
+
 function renderTablemates(mates,guest,checkedNames,luckyNames){
   document.getElementById('tablemateList').innerHTML='<ul class="tablemate-list">'+mates.map(g=>{
     const n=g.name||g.alias||Object.values(g)[0];
@@ -454,6 +468,7 @@ function checkIn(){
       status.textContent='Check-in removed.';
       status.style.color='rgba(201,169,110,.6)';
       localStorage.removeItem('checkedIn_'+name);
+      refreshTablemates();
     })
     .catch(()=>{status.textContent='Could not connect — please try again.';});
     return;
@@ -482,6 +497,7 @@ function checkIn(){
       : 'Welcome! Your attendance has been recorded ✦';
     status.style.color='rgba(74,158,158,.8)';
     localStorage.setItem('checkedIn_'+name,'1');
+    refreshTablemates();
   })
   .catch(()=>{
     btn.textContent='✦ Check In';
@@ -572,6 +588,7 @@ function toggleLuckyDraw(){
       status.textContent='Lucky draw collection removed.';
       status.style.color='rgba(74,158,158,.8)';
       localStorage.removeItem('luckyDraw_'+name);
+      refreshTablemates();
     })
     .catch(()=>{status.textContent='Could not connect — please try again.';});
     return;
@@ -598,6 +615,7 @@ function toggleLuckyDraw(){
     status.textContent=data.duplicate?'Already collected!':'Lucky draw ticket collected ✦';
     status.style.color='rgba(74,158,158,.8)';
     localStorage.setItem('luckyDraw_'+name,'1');
+    refreshTablemates();
   })
   .catch(()=>{
     btn.textContent='🎟 Collect Lucky Draw';
