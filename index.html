@@ -585,7 +585,7 @@ function toggleLuckyDraw(){
     })
     .then(r=>r.json())
     .then(()=>{
-      btn.textContent='🎟 Collect Lucky Draw';
+      btn.textContent='🎟 Click to confirm Lucky Draw Ticket collected';
       btn.style.background='#4a9e9e';
       btn.style.borderColor='#4a9e9e';
       btn.style.color='white';
@@ -625,7 +625,7 @@ function toggleLuckyDraw(){
     refreshTablemates();
   })
   .catch(()=>{
-    btn.textContent='🎟 Collect Lucky Draw';
+    btn.textContent='🎟 Click to confirm Lucky Draw Ticket collected';
     btn.style.background='#4a9e9e';
     btn.style.borderColor='#4a9e9e';
     btn.style.color='white';
@@ -658,7 +658,7 @@ function restoreLuckyDrawState(){
         status.style.color='rgba(74,158,158,.8)';
         localStorage.setItem('luckyDraw_'+name,'1');
       } else {
-        btn.textContent='🎟 Collect Lucky Draw';
+        btn.textContent='🎟 Click to confirm Lucky Draw Ticket collected';
         btn.style.background='#4a9e9e';
         btn.style.borderColor='#4a9e9e';
         btn.style.color='white';
