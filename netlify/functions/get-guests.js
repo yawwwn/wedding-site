@@ -12,8 +12,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    const sql = neon(process.env.DATABASE_URL);
-
+const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
+    
     await sql`
       CREATE TABLE IF NOT EXISTS guests (
         id SERIAL PRIMARY KEY,
