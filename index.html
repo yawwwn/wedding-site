@@ -246,7 +246,7 @@ const fpReadyPromise = fetch('/.netlify/functions/floorplan')
   // silently fall back to localStorage version
 
 // Load stations + menu from DB settings
-fetch('/.netlify/functions/settings')
+const settingsReadyPromise = fetch('/.netlify/functions/settings')
   .then(r=>r.json())
   .then(s=>{
     if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
@@ -360,7 +360,7 @@ function showResult(guest){
   document.getElementById('tablemateList').innerHTML=
     '<ul class="tablemate-list"><li style="color:var(--mid);font-size:.75rem;font-style:italic;padding:8px 0;">Loading status...</li></ul>';
 
-  renderMenu();
+  settingsReadyPromise.then(()=>renderMenu());
   showPage('resultPage');
   // Wait for floor plan data if not yet loaded, then render
   if(fpReady){
@@ -398,14 +398,6 @@ function showResult(guest){
       restoreLuckyDrawState();
     });
 
-  // After the settings fetch at the top, store as a promise
-const settingsReadyPromise = fetch('/.netlify/functions/settings')
-  .then(r=>r.json())
-  .then(s=>{
-    if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
-    if(s.menuData){try{MENU=JSON.parse(s.menuData);}catch(e){}}
-  })
-  .catch(()=>{});
 }
 
   function refreshTablemates(){
