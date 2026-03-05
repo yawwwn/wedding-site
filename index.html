@@ -479,16 +479,47 @@ function restoreCheckinState(){
   const btn=document.getElementById('checkinBtn');
   const status=document.getElementById('checkinStatus');
   if(!btn) return;
-  if(localStorage.getItem('checkedIn_'+name)){
-    btn.textContent='✓ Checked In — tap to undo';
-    btn.style.background='transparent';
-    btn.style.borderColor='#4a9e9e';
-    btn.style.color='#4a9e9e';
-    btn.style.cursor='pointer';
-    btn.dataset.done='1';
-    status.textContent="You're already on the list — enjoy the celebration!";
-    status.style.color='rgba(74,158,158,.8)';
-  }
+  // Verify against DB, don't trust localStorage alone
+  fetch('/.netlify/functions/attendance')
+    .then(r=>r.json())
+    .then(data=>{
+      const checkedNames=new Set((Array.isArray(data)?data:[]).map(c=>c.name.toLowerCase()));
+      const isChecked=checkedNames.has(name.toLowerCase());
+      if(isChecked){
+        btn.textContent='✓ Checked In — tap to undo';
+        btn.style.background='transparent';
+        btn.style.borderColor='#4a9e9e';
+        btn.style.color='#4a9e9e';
+        btn.style.cursor='pointer';
+        btn.dataset.done='1';
+        status.textContent="You're already on the list — enjoy the celebration!";
+        status.style.color='rgba(74,158,158,.8)';
+        localStorage.setItem('checkedIn_'+name,'1');
+      } else {
+        // Not in DB — clear local cache and reset button
+        btn.textContent='✦ Check In';
+        btn.style.background='var(--gold)';
+        btn.style.borderColor='var(--gold)';
+        btn.style.color='white';
+        btn.style.cursor='pointer';
+        delete btn.dataset.done;
+        status.textContent='';
+        localStorage.removeItem('checkedIn_'+name);
+      }
+    })
+    .catch(()=>{
+      // If DB unreachable, fall back to localStorage
+      if(localStorage.getItem('checkedIn_'+name)){
+        btn.textContent='✓ Checked In — tap to undo';
+        btn.style.background='transparent';
+        btn.style.borderColor='#4a9e9e';
+        btn.style.color='#4a9e9e';
+        btn.style.cursor='pointer';
+        btn.dataset.done='1';
+        status.textContent="You're already on the list — enjoy the celebration!";
+        status.style.color='rgba(74,158,158,.8)';
+      }
+    });
 }
 
 // ════════════════════════════════════
@@ -564,16 +595,44 @@ function restoreLuckyDrawState(){
   const btn=document.getElementById('luckyDrawBtn');
   const status=document.getElementById('luckyDrawStatus');
   if(!btn) return;
-  if(localStorage.getItem('luckyDraw_'+name)){
-    btn.textContent='🎟 Collected — tap to undo';
-    btn.style.background='#2d7a7a';
-    btn.style.borderColor='#2d7a7a';
-    btn.style.color='white';
-    btn.style.cursor='pointer';
-    btn.dataset.done='1';
-    status.textContent='Lucky draw ticket collected ✦';
-    status.style.color='rgba(74,158,158,.8)';
-  }
+  fetch('/.netlify/functions/luckydraw')
+    .then(r=>r.json())
+    .then(data=>{
+      const collectedNames=new Set((Array.isArray(data)?data:[]).map(c=>c.name.toLowerCase()));
+      const isCollected=collectedNames.has(name.toLowerCase());
+      if(isCollected){
+        btn.textContent='🎟 Collected — tap to undo';
+        btn.style.background='#2d7a7a';
+        btn.style.borderColor='#2d7a7a';
+        btn.style.color='white';
+        btn.style.cursor='pointer';
+        btn.dataset.done='1';
+        status.textContent='Lucky draw ticket collected ✦';
+        status.style.color='rgba(74,158,158,.8)';
+        localStorage.setItem('luckyDraw_'+name,'1');
+      } else {
+        btn.textContent='🎟 Collect Lucky Draw';
+        btn.style.background='#4a9e9e';
+        btn.style.borderColor='#4a9e9e';
+        btn.style.color='white';
+        btn.style.cursor='pointer';
+        delete btn.dataset.done;
+        status.textContent='';
+        localStorage.removeItem('luckyDraw_'+name);
+      }
+    })
+    .catch(()=>{
+      if(localStorage.getItem('luckyDraw_'+name)){
+        btn.textContent='🎟 Collected — tap to undo';
+        btn.style.background='#2d7a7a';
+        btn.style.borderColor='#2d7a7a';
+        btn.style.color='white';
+        btn.style.cursor='pointer';
+        btn.dataset.done='1';
+        status.textContent='Lucky draw ticket collected ✦';
+        status.style.color='rgba(74,158,158,.8)';
+      }
+    });
 }
 
 // ════════════════════════════════════
