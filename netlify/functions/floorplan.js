@@ -1,45 +1,43 @@
-function restoreLuckyDrawState(){
-  if(!activeGuest) return;
-  const name=activeGuest.name||activeGuest.alias||Object.values(activeGuest)[0];
-  const btn=document.getElementById('luckyDrawBtn');
-  const status=document.getElementById('luckyDrawStatus');
-  if(!btn) return;
-  fetch('/.netlify/functions/luckydraw')
-    .then(r=>r.json())
-    .then(data=>{
-      const collectedNames=new Set((Array.isArray(data)?data:[]).map(c=>c.name.toLowerCase()));
-      const isCollected=collectedNames.has(name.toLowerCase());
-      if(isCollected){
-        btn.textContent='🎟 Collected — tap to undo';
-        btn.style.background='#2d7a7a';
-        btn.style.borderColor='#2d7a7a';
-        btn.style.color='white';
-        btn.style.cursor='pointer';
-        btn.dataset.done='1';
-        status.textContent='Lucky draw ticket collected ✦';
-        status.style.color='rgba(74,158,158,.8)';
-        localStorage.setItem('luckyDraw_'+name,'1');
-      } else {
-        btn.textContent='🎟 Collect Lucky Draw';
-        btn.style.background='#4a9e9e';
-        btn.style.borderColor='#4a9e9e';
-        btn.style.color='white';
-        btn.style.cursor='pointer';
-        delete btn.dataset.done;
-        status.textContent='';
-        localStorage.removeItem('luckyDraw_'+name);
-      }
-    })
-    .catch(()=>{
-      if(localStorage.getItem('luckyDraw_'+name)){
-        btn.textContent='🎟 Collected — tap to undo';
-        btn.style.background='#2d7a7a';
-        btn.style.borderColor='#2d7a7a';
-        btn.style.color='white';
-        btn.style.cursor='pointer';
-        btn.dataset.done='1';
-        status.textContent='Lucky draw ticket collected ✦';
-        status.style.color='rgba(74,158,158,.8)';
-      }
-    });
-}
+const { neon } = require('@neondatabase/serverless');
+
+exports.handler = async (event) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+
+  try {
+    const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
+
+    await sql`CREATE TABLE IF NOT EXISTS floorplan (
+      id INT PRIMARY KEY DEFAULT 1,
+      data JSONB NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT now()
+    )`;
+
+    if (event.httpMethod === 'GET') {
+      const rows = await sql`SELECT data FROM floorplan WHERE id = 1`;
+      if (!rows.length) return { statusCode: 200, headers, body: JSON.stringify({ elements: [] }) };
+      return { statusCode: 200, headers, body: JSON.stringify(rows[0].data) };
+    }
+
+    if (event.httpMethod === 'POST') {
+      const data = JSON.parse(event.body);
+      await sql`
+        INSERT INTO floorplan (id, data, updated_at)
+        VALUES (1, ${JSON.stringify(data)}, now())
+        ON CONFLICT (id) DO UPDATE SET data = ${JSON.stringify(data)}, updated_at = now()
+      `;
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+    }
+
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+
+  } catch(err) {
+    console.error('Floorplan error:', err);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
+  }
+};
