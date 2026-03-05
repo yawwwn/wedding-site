@@ -397,6 +397,15 @@ function showResult(guest){
       restoreCheckinState();
       restoreLuckyDrawState();
     });
+
+  // After the settings fetch at the top, store as a promise
+const settingsReadyPromise = fetch('/.netlify/functions/settings')
+  .then(r=>r.json())
+  .then(s=>{
+    if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
+    if(s.menuData){try{MENU=JSON.parse(s.menuData);}catch(e){}}
+  })
+  .catch(()=>{});
 }
 
   function refreshTablemates(){
