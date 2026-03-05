@@ -25,6 +25,10 @@ body::before{content:'';position:fixed;inset:0;background:
 #searchPage{min-height:100vh;display:flex;flex-direction:column;}
 .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:60px 24px;text-align:center;}
 .ornament{font-size:1.5rem;color:var(--gold);letter-spacing:.5em;margin-bottom:20px;opacity:.6;}
+.couple-photo-wrap{width:100%;max-height:480px;overflow:hidden;display:none;position:relative;}
+.couple-photo-wrap.has-photo{display:block;}
+.couple-photo-wrap img{width:100%;max-height:480px;object-fit:cover;object-position:center top;display:block;}
+.couple-photo-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to bottom,transparent,var(--cream,#faf7f2));}
 .hero-names{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);font-weight:300;line-height:1;color:var(--dark);margin-bottom:12px;}
 .hero-names em{font-style:italic;color:var(--gold);}
 .hero-date{font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mid);margin-bottom:52px;}
@@ -111,6 +115,9 @@ body::before{content:'';position:fixed;inset:0;background:
 
 <!-- SEARCH PAGE -->
 <div class="page active" id="searchPage">
+  <div class="couple-photo-wrap" id="couplePhotoWrap">
+    <img id="couplePhotoImg" src="" alt="Yaowen &amp; Peiyan">
+  </div>
   <div class="hero">
     <div class="ornament fade-up">✦ ✦ ✦</div>
     <div class="hero-names fade-up delay-1"><em>Yaowen</em> &amp; <em>Peiyan</em></div>
@@ -251,6 +258,7 @@ const settingsReadyPromise = fetch('/.netlify/functions/settings')
   .then(s=>{
     if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
     if(s.menuData){try{MENU=JSON.parse(s.menuData);}catch(e){}}
+    if(s.couplePhoto){applyCouplePhoto(s.couplePhoto);}
   })
   .catch(()=>{});
 
@@ -284,6 +292,12 @@ if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
 // ========================================
 // SEARCH
 // ========================================
+function applyCouplePhoto(url){
+  const img=document.getElementById('couplePhotoImg');
+  const wrap=document.getElementById('couplePhotoWrap');
+  if(img&&wrap&&url){img.src=url;wrap.classList.add('has-photo');}
+  else if(wrap){wrap.classList.remove('has-photo');}
+}
 function matchGuest(g,q){
   return Object.entries(g).some(([k,v])=>
     k.toLowerCase()!=='table'&&String(v).toLowerCase().includes(q)
