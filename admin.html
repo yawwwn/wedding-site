@@ -705,6 +705,25 @@ function initApp(){
       }
     })
     .catch(()=>{}); // silently fall back to localStorage
+  // Load stations + menu from DB
+  fetch('/.netlify/functions/settings')
+    .then(r=>r.json())
+    .then(s=>{
+      if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);renderStations();}catch(e){}}
+      if(s.menuData){try{MENU=JSON.parse(s.menuData);renderMenuEditor();}catch(e){}}
+    })
+    .catch(()=>{});
+  // Load floor plan from DB
+  fetch('/.netlify/functions/floorplan')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.elements&&data.elements.length){
+        fpElements=data.elements;
+        fpIdCtr=data.idCtr||fpElements.length+1;
+        fpRender();
+      }
+    })
+    .catch(()=>{});
 }
 
 function loadStorage(){
