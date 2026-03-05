@@ -693,6 +693,18 @@ function initApp(){
   renderMenuEditor();
   renderGuestPreview();
   fpInit();
+  // Load guests from DB so admin works on any device
+  fetch('/.netlify/functions/get-guests')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.guests&&data.guests.length){
+        guests=data.guests;
+        columns=data.guests.length?Object.keys(data.guests[0]):[];
+        renderGuestPreview();
+        showToast(data.guests.length+' guests loaded from DB ✓');
+      }
+    })
+    .catch(()=>{}); // silently fall back to localStorage
 }
 
 function loadStorage(){
