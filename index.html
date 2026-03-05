@@ -770,10 +770,31 @@ function resetVoice(){
 function checkIn(){
   const btn=document.getElementById('checkinBtn');
   const status=document.getElementById('checkinStatus');
-  if(btn.dataset.done) return;
-
   const name=activeGuest.name||activeGuest.alias||Object.values(activeGuest)[0];
   const table_no=activeGuest.table;
+
+  // If already checked in, offer to undo
+  if(btn.dataset.done){
+    if(!confirm('Remove your check-in?')) return;
+    fetch('/.netlify/functions/checkin',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name})
+    })
+    .then(r=>r.json())
+    .then(()=>{
+      btn.textContent='✦ Check In';
+      btn.style.borderColor='var(--gold)';
+      btn.style.color='var(--gold)';
+      btn.style.opacity='1';
+      btn.style.cursor='pointer';
+      delete btn.dataset.done;
+      status.textContent='Check-in removed.';
+      localStorage.removeItem('checkedIn_'+name);
+    })
+    .catch(()=>{ status.textContent='Could not connect — please try again.'; });
+    return;
+  }
 
   btn.textContent='Checking in…';
   btn.style.opacity='.5';
@@ -787,19 +808,20 @@ function checkIn(){
   .then(r=>r.json())
   .then(data=>{
     if(data.duplicate){
-      btn.textContent='✓ Already Checked In';
+      btn.textContent='✓ Checked In — tap to undo';
       btn.style.borderColor='#4a9e9e';
       btn.style.color='#4a9e9e';
       btn.style.opacity='1';
-      status.textContent="You're already on the list — enjoy the celebration!";    
+      status.textContent="You're already on the list — enjoy the celebration!";
     } else {
-      btn.textContent='✓ Checked In';
+      btn.textContent='✓ Checked In — tap to undo';
       btn.style.borderColor='#4a9e9e';
       btn.style.color='#4a9e9e';
       btn.style.opacity='1';
       status.textContent='Welcome! Your attendance has been recorded ✦';
     }
     btn.dataset.done='1';
+    btn.style.cursor='pointer';
     localStorage.setItem('checkedIn_'+name,'1');
   })
   .catch(()=>{
@@ -818,10 +840,11 @@ function restoreCheckinState(){
   const status=document.getElementById('checkinStatus');
   if(!btn) return;
   if(localStorage.getItem('checkedIn_'+name)){
-    btn.textContent='✓ Checked In';
+    btn.textContent='✓ Checked In — tap to undo';
     btn.style.borderColor='#4a9e9e';
     btn.style.color='#4a9e9e';
     btn.dataset.done='1';
+    btn.style.cursor='pointer';
     status.textContent="You're already on the list — enjoy the celebration!";
   }
 }
