@@ -603,8 +603,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
               <div style="font-size:.72rem;color:var(--text-dim);">Allow guests to check themselves in</div>
             </div>
             <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
-              <input type="checkbox" id="toggleCheckin" onchange="saveSetting('checkin_enabled', this.checked)"
-                style="opacity:0;width:0;height:0;position:absolute;">
+              <input type="checkbox" id="toggleCheckin" style="opacity:0;width:0;height:0;position:absolute;">
               <span id="toggleCheckinTrack" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:background .2s;"></span>
               <span id="toggleCheckinThumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></span>
             </label>
@@ -616,8 +615,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
               <div style="font-size:.72rem;color:var(--text-dim);">Allow guests to collect lucky draw tickets</div>
             </div>
             <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
-              <input type="checkbox" id="toggleLuckyDraw" onchange="saveSetting('luckydraw_enabled', this.checked)"
-                style="opacity:0;width:0;height:0;position:absolute;">
+              <input type="checkbox" id="toggleLuckyDraw" style="opacity:0;width:0;height:0;position:absolute;">
               <span id="toggleLuckyDrawTrack" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:background .2s;"></span>
               <span id="toggleLuckyDrawThumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></span>
             </label>
@@ -1587,7 +1585,14 @@ function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 // Load settings state on page init so toggles are correct from the start
-loadSettings();
+// Attach toggle listeners properly (avoids browser form-restore firing onchange)
+document.getElementById('toggleCheckin').addEventListener('change', function(){
+  saveSetting('checkin_enabled', this.checked);
+});
+document.getElementById('toggleLuckyDraw').addEventListener('change', function(){
+  saveSetting('luckydraw_enabled', this.checked);
+});
+loadSettings();;
 </script>
 </body>
 </html>
