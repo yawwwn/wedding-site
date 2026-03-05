@@ -1592,7 +1592,9 @@ function filterLuckyDraw(){
   renderLuckyDraw(list, status==='not-collected');
 }
 
+let _ldData=null;
 function renderLuckyDraw(data, showMissing=false){
+  _ldData=data;
   const total=guests.length||'?';
   document.getElementById('luckyDrawSummary').textContent=
     showMissing
@@ -1612,11 +1614,10 @@ function renderLuckyDraw(data, showMissing=false){
     const badge=showMissing
       ? `<span style="font-size:.7rem;padding:2px 8px;border-radius:2px;background:rgba(229,115,115,.15);color:#e57373;border:1px solid rgba(229,115,115,.3);">Not collected</span>`
       : `<span style="font-size:.7rem;">${escHtml(time)}</span>`;
-    const nameJson=JSON.stringify(c.name);
-    const tableJson=JSON.stringify(c.table_no||'');
+    const i_=data.indexOf(c);
     const actionBtn=showMissing
-      ? `<button class="btn" style="font-size:.7rem;padding:3px 10px;" onclick="adminMarkLuckyDraw(${nameJson},${tableJson})">+ Mark collected</button>`
-      : `<button class="btn danger" style="font-size:.7rem;padding:3px 10px;" onclick="adminUnmarkLuckyDraw(${nameJson})">✕ Remove</button>`;
+      ? `<button class="btn" style="font-size:.7rem;padding:3px 10px;" onclick="_ldData&&adminMarkLuckyDraw(_ldData[${i_}].name,_ldData[${i_}].table_no)">+ Mark collected</button>`
+      : `<button class="btn danger" style="font-size:.7rem;padding:3px 10px;" onclick="_ldData&&adminUnmarkLuckyDraw(_ldData[${i_}].name)">✕ Remove</button>`;
     html+=`<tr>
       <td style="color:var(--text-dim);width:36px;">${i+1}</td>
       <td><strong style="color:var(--text)">${escHtml(c.name)}</strong></td>
@@ -1630,27 +1631,33 @@ function renderLuckyDraw(data, showMissing=false){
 }
 
 function adminMarkLuckyDraw(name, table_no){
-  if(!confirm(`Mark "${name}" as lucky draw collected?`)) return;
+  if(!confirm('Mark "'+name+'" as lucky draw collected?')) return;
   fetch('/.netlify/functions/luckydraw',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name, table_no})
   })
-  .then(r=>r.json())
-  .then(()=>loadLuckyDraw())
-  .catch(()=>alert('Error — could not mark lucky draw.'));
+  .then(r=>{
+    if(!r.ok) return r.text().then(t=>{throw new Error(t);});
+    return r.json();
+  })
+  .then(()=>{showToast('Marked as collected ✓');loadLuckyDraw();})
+  .catch(err=>{console.error(err);showToast('Error — could not mark lucky draw');});
 }
 
 function adminUnmarkLuckyDraw(name){
-  if(!confirm(`Remove lucky draw record for "${name}"?`)) return;
+  if(!confirm('Remove lucky draw record for "'+name+'"?')) return;
   fetch('/.netlify/functions/luckydraw',{
     method:'DELETE',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name})
   })
-  .then(r=>r.json())
-  .then(()=>loadLuckyDraw())
-  .catch(()=>alert('Error — could not remove lucky draw record.'));
+  .then(r=>{
+    if(!r.ok) return r.text().then(t=>{throw new Error(t);});
+    return r.json();
+  })
+  .then(()=>{showToast('Record removed ✓');loadLuckyDraw();})
+  .catch(err=>{console.error(err);showToast('Error — could not remove record');});
 }
 
 function renderLuckyDrawSummary(data){
