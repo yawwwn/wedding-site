@@ -816,7 +816,7 @@ sorted.forEach(el=>{
       h+='<text x="'+cx+'" y="'+(cy*.3+y*.7)+'" font-family="Jost,sans-serif" font-size="'+Math.max(9,Math.min(20,w*.016))+'" fill="'+fpRgba(c,.16)+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".25em">'+(el.label||'VENUE').toUpperCase()+'</text>';
     } else if(el.type==='room'){
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+eh+'" fill="'+fpRgba(c,.1)+'" stroke="'+c+'" stroke-width="1.8" rx="2" stroke-dasharray="'+(el.dash?'4,2':'none')+'"/>';
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(13,w*.09)+'" fill="'+fpRgba(c,.55)+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em">'+(el.label||'ROOM').toUpperCase()+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(13,w*.09))+'" fill="'+fpRgba(c,.55)+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em">'+(el.label||'ROOM').toUpperCase()+'</text>';
     } else if(el.type==='round-table'){
       const r=w/2-3,s=Math.min(el.seats||8,16);
       let dots='';
@@ -834,36 +834,36 @@ sorted.forEach(el=>{
       for(let i=0;i<t;i++){const dx=10+(i/(t-1||1))*(w-20);dd+='<rect x="'+(x+dx-5).toFixed(1)+'" y="'+(y+1)+'" width="10" height="8" rx="2" fill="'+fpRgba(c,.48)+'" stroke="'+c+'" stroke-width="1"/>';}
       for(let i=0;i<b;i++){const dx=10+(i/(b-1||1))*(w-20);dd+='<rect x="'+(x+dx-5).toFixed(1)+'" y="'+(y+eh-9)+'" width="10" height="8" rx="2" fill="'+fpRgba(c,.48)+'" stroke="'+c+'" stroke-width="1"/>';}
       h+=dd+'<rect x="'+x+'" y="'+(y+10)+'" width="'+w+'" height="'+(eh-20)+'" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="2" rx="2"/>';
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,w*.12,(eh-20)*.55)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".04em">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,w*.12,(eh-20)*.55))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".04em">'+(el.label||'')+'</text>';
     } else if(el.type==='recep-table'){
       const lH=Math.max(4,eh*.1),tH=Math.max(5,eh*.18);
       h+='<rect x="'+x+'" y="'+(y+tH)+'" width="'+w+'" height="'+(eh-tH-lH)+'" rx="2" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="2"/>';
       h+='<rect x="'+x+'" y="'+(y+tH)+'" width="'+w+'" height="'+(tH*.9)+'" rx="2 2 0 0" fill="'+fpRgba(c,.4)+'"/>';
       h+='<rect x="'+(x+w*.06)+'" y="'+(y+eh-lH)+'" width="'+(w*.08)+'" height="'+lH+'" rx="1" fill="'+fpRgba(c,.48)+'"/>';
       h+='<rect x="'+(x+w*.86)+'" y="'+(y+eh-lH)+'" width="'+(w*.08)+'" height="'+lH+'" rx="1" fill="'+fpRgba(c,.48)+'"/>';
-      h+='<text x="'+cx+'" y="'+(y+tH+(eh-tH-lH)/2)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,w*.09,eh*.3)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".08em">'+(el.label||'Reception').toUpperCase()+'</text>';
+      h+='<text x="'+cx+'" y="'+(y+tH+(eh-tH-lH)/2)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,w*.09,eh*.3))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".08em">'+(el.label||'Reception').toUpperCase()+'</text>';
     } else if(el.type==='stage'){
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+eh+'" fill="'+fpRgba(c,.15)+'" stroke="'+c+'" stroke-width="2" rx="3"/>';
       h+='<rect x="'+x+'" y="'+(y+eh-8)+'" width="'+w+'" height="8" fill="'+fpRgba(c,.4)+'" rx="0 0 3 3"/>';
-      h+='<text x="'+cx+'" y="'+(cy-2)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(12,w*.11)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em" font-weight="600">STAGE</text>';
+      h+='<text x="'+cx+'" y="'+(cy-2)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(12,w*.11))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em" font-weight="600">STAGE</text>';
     } else if(el.type==='backdrop'){
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+eh+'" fill="'+fpRgba(c,.1)+'" stroke="'+c+'" stroke-width="1.5" rx="1"/>';
       h+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+w)+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width=".8" opacity=".3"/>';
       h+='<line x1="'+(x+w)+'" y1="'+y+'" x2="'+x+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width=".8" opacity=".3"/>';
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(11,w*.12,eh*.35)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(11,w*.12,eh*.35))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
     } else if(el.type==='sofa'){
       h+='<rect x="'+x+'" y="'+(y+eh*.35)+'" width="'+w+'" height="'+(eh*.65)+'" rx="5" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="1.5"/>';
       h+='<rect x="'+x+'" y="'+(y+eh*.1)+'" width="'+(w*.18)+'" height="'+(eh*.65)+'" rx="4" fill="'+fpRgba(c,.48)+'" stroke="'+c+'" stroke-width="1"/>';
       h+='<rect x="'+(x+w*.82)+'" y="'+(y+eh*.1)+'" width="'+(w*.18)+'" height="'+(eh*.65)+'" rx="4" fill="'+fpRgba(c,.48)+'" stroke="'+c+'" stroke-width="1"/>';
-      h+='<text x="'+cx+'" y="'+(y+eh*.67)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.12,eh*.28)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+(y+eh*.67)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.12,eh*.28))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
     } else if(el.type==='champagne'||el.type==='circle-el'){
       const r=w/2-2;
       h+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="1.8" stroke-dasharray="'+(el.dash?'6,3':'none')+'"/>';
       if(el.type==='champagne'){
         h+='<text x="'+cx+'" y="'+(cy+1)+'" font-size="'+(r*.8)+'" text-anchor="middle" dominant-baseline="middle">🥂</text>';
-        h+='<text x="'+cx+'" y="'+(cy+r*.65)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,r*.32)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
+        h+='<text x="'+cx+'" y="'+(cy+r*.65)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,r*.32))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
       } else {
-        h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,r*.38)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
+        h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,r*.38))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'')+'</text>';
       }
     } else if(el.type==='photobooth'){
       const cr=Math.min(w,eh)*.22;
@@ -872,19 +872,19 @@ sorted.forEach(el=>{
       h+='<circle cx="'+cx+'" cy="'+(y+eh*.62)+'" r="'+cr+'" fill="none" stroke="'+c+'" stroke-width="1.8"/>';
       h+='<circle cx="'+cx+'" cy="'+(y+eh*.62)+'" r="'+(cr*.4)+'" fill="'+fpRgba(c,.5)+'"/>';
       h+='<circle cx="'+(x+w*.78)+'" cy="'+(y+eh*.28)+'" r="'+Math.min(w,eh)*.07+'" fill="'+c+'" opacity=".7"/>';
-      h+='<text x="'+cx+'" y="'+(y+eh*.13)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.13)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'Photo Booth')+'</text>';
+      h+='<text x="'+cx+'" y="'+(y+eh*.13)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.13))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'Photo Booth')+'</text>';
     } else if(el.type==='videobooth'){
       const vr=Math.min(w,eh)*.2;
       h+='<rect x="'+x+'" y="'+(y+eh*.12)+'" width="'+(w*.68)+'" height="'+(eh*.76)+'" rx="3" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="1.8"/>';
       h+='<polygon points="'+(x+w*.68)+','+(y+eh*.3)+' '+(x+w*.98)+','+(y+eh*.18)+' '+(x+w*.98)+','+(y+eh*.82)+' '+(x+w*.68)+','+(y+eh*.7)+'" fill="'+fpRgba(c,.3)+'" stroke="'+c+'" stroke-width="1.5"/>';
       h+='<circle cx="'+(x+w*.34)+'" cy="'+cy+'" r="'+vr+'" fill="none" stroke="'+c+'" stroke-width="1.5"/>';
       h+='<circle cx="'+(x+w*.34)+'" cy="'+cy+'" r="'+(vr*.4)+'" fill="'+fpRgba(c,.5)+'"/>';
-      h+='<text x="'+(x+w*.34)+'" y="'+(y+eh*.93)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.12)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'Video Booth')+'</text>';
+      h+='<text x="'+(x+w*.34)+'" y="'+(y+eh*.93)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.12))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+(el.label||'Video Booth')+'</text>';
     } else if(el.type==='door'){
       h+='<line x1="'+x+'" y1="'+(y+eh)+'" x2="'+x+'" y2="'+y+'" stroke="'+c+'" stroke-width="3.5" stroke-linecap="square"/>';
       h+='<line x1="'+x+'" y1="'+(y+eh)+'" x2="'+(x+w)+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width="3.5" stroke-linecap="square"/>';
       h+='<path d="M'+x+' '+y+' A'+w+' '+eh+' 0 0 1 '+(x+w)+' '+(y+eh)+'" fill="'+fpRgba(c,.1)+'" stroke="'+c+'" stroke-width="1.5" stroke-dasharray="5,3"/>';
-      if(el.label) h+='<text x="'+(x+w*.35)+'" y="'+(y+eh*.42)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.18)+'" fill="'+fpRgba(c,.85)+'" text-anchor="middle" dominant-baseline="middle">'+el.label+'</text>';
+      if(el.label) h+='<text x="'+(x+w*.35)+'" y="'+(y+eh*.42)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.18))+'" fill="'+fpRgba(c,.85)+'" text-anchor="middle" dominant-baseline="middle">'+el.label+'</text>';
     } else if(el.type==='door-closed'){
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+eh+'" rx="2" fill="'+fpRgba(c,.18)+'" stroke="'+c+'" stroke-width="2.5"/>';
       h+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+w)+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width="1.2" opacity=".45"/>';
@@ -893,7 +893,7 @@ sorted.forEach(el=>{
       const bw=w*.72,bh=eh*.52,bx2=x+(w-bw)/2;
       h+='<rect x="'+bx2+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="2" fill="'+fpRgba(c,.14)+'" stroke="'+c+'" stroke-width="2"/>';
       h+='<rect x="'+bx2+'" y="'+y+'" width="'+bw+'" height="'+(bh*.22)+'" rx="2 2 0 0" fill="'+fpRgba(c,.35)+'"/>';
-      h+='<text x="'+cx+'" y="'+(y+bh*.58)+'" font-family="Cormorant Garamond,serif" font-size="'+fs(Math.min(12,bw*.19)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" font-style="italic">'+(el.label||'Welcome')+'</text>';
+      h+='<text x="'+cx+'" y="'+(y+bh*.58)+'" font-family="Cormorant Garamond,serif" font-size="'+fs(Math.min(12,bw*.19))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" font-style="italic">'+(el.label||'Welcome')+'</text>';
       h+='<line x1="'+cx+'" y1="'+(y+bh)+'" x2="'+(cx-w*.3)+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"/>';
       h+='<line x1="'+cx+'" y1="'+(y+bh)+'" x2="'+(cx+w*.3)+'" y2="'+(y+eh)+'" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"/>';
       h+='<line x1="'+cx+'" y1="'+(y+bh)+'" x2="'+cx+'" y2="'+(y+eh*.82)+'" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"/>';
@@ -901,23 +901,23 @@ sorted.forEach(el=>{
       const thick=Math.max(6,Math.round(eh*.28));
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+eh+'" rx="3" fill="'+fpRgba(c,.12)+'" stroke="'+c+'" stroke-width="2"/>';
       h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+thick+'" rx="3 3 0 0" fill="'+fpRgba(c,.45)+'"/>';
-      h+='<text x="'+cx+'" y="'+(cy+1)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,eh*.45)+'" fill="'+fpRgba(c,.8)+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".1em">SCREEN</text>';
+      h+='<text x="'+cx+'" y="'+(cy+1)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(10,eh*.45))+'" fill="'+fpRgba(c,.8)+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".1em">SCREEN</text>';
     } else if(el.type==='wc-male'||el.type==='wc-female'){
       const s=Math.min(w,eh),wcc=el.type==='wc-male'?'#6ab0e0':'#e08ab0';
       h+='<rect x="'+(x+1)+'" y="'+(y+1)+'" width="'+(w-2)+'" height="'+(eh-2)+'" rx="'+(s*.1)+'" fill="'+fpRgba(wcc,.15)+'" stroke="'+wcc+'" stroke-width="1.8"/>';
       h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+Math.max(7,s*.45)+'" fill="'+wcc+'" text-anchor="middle" dominant-baseline="middle">'+(el.type==='wc-male'?'♂':'♀')+'</text>';
     } else if(el.type==='text-label'){
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Cormorant Garamond,serif" font-size="'+fs(Math.min(18,eh*.7)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" font-style="italic">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Cormorant Garamond,serif" font-size="'+fs(Math.min(18,eh*.7))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" font-style="italic">'+(el.label||'')+'</text>';
     } else if(el.type==='line'||el.type==='line-dashed'){
       const lw=Math.max(1.5,eh*.6);
       h+='<line x1="'+x+'" y1="'+cy+'" x2="'+(x+w)+'" y2="'+cy+'" stroke="'+c+'" stroke-width="'+lw+'" stroke-linecap="round" stroke-dasharray="'+(el.type==='line-dashed'?'10,5':'none')+'"/>';
       if(el.label) h+='<text x="'+cx+'" y="'+(cy-lw-3)+'" font-family="Jost,sans-serif" font-size="9" fill="'+c+'" text-anchor="middle" dominant-baseline="auto">'+el.label+'</text>';
     } else if(el.type==='arrow'){
       h+='<line x1="'+(x+3)+'" y1="'+cy+'" x2="'+(x+w-7)+'" y2="'+cy+'" stroke="'+c+'" stroke-width="'+Math.max(2,eh*.35)+'" stroke-linecap="round" marker-end="url(#arr)"/>';
-      if(el.label) h+='<text x="'+cx+'" y="'+(cy-6)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.14)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="auto">'+el.label+'</text>';
+      if(el.label) h+='<text x="'+cx+'" y="'+(cy-6)+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(9,w*.14))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="auto">'+el.label+'</text>';
     } else if(el.type==='rectangle'){
       h+='<rect x="'+(x+1)+'" y="'+(y+1)+'" width="'+(w-2)+'" height="'+(eh-2)+'" fill="'+fpRgba(c,.1)+'" stroke="'+c+'" stroke-width="1.8" rx="2" stroke-dasharray="'+(el.dash?'6,3':'none')+'"/>';
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(11,w*.11,eh*.35)+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".06em">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(Math.min(11,w*.11,eh*.35))+'" fill="'+c+'" text-anchor="middle" dominant-baseline="middle" letter-spacing=".06em">'+(el.label||'')+'</text>';
     }
     if(clk&&!act){
       const ax=cx, ay=y-6;
