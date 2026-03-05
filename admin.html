@@ -518,6 +518,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
             <span id="attendanceSummary" style="font-size:.72rem;color:var(--text-dim);"></span>
             <button class="btn" onclick="loadAttendance()">↻ Refresh</button>
             <button class="btn" onclick="exportAttendanceCSV()">⬇ Export CSV</button>
+            <button class="btn danger" onclick="clearAllAttendance()">✕ Clear All</button>
           </div>
         </div>
         <div class="section-body">
@@ -558,6 +559,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
             <span id="luckyDrawSummary" style="font-size:.72rem;color:var(--text-dim);"></span>
             <button class="btn" onclick="loadLuckyDraw()">↻ Refresh</button>
             <button class="btn" onclick="exportLuckyDrawCSV()">⬇ Export CSV</button>
+            <button class="btn danger" onclick="clearAllLuckyDraw()">✕ Clear All</button>
           </div>
         </div>
         <div class="section-body">
@@ -1391,7 +1393,24 @@ function renderTableSummary(data){
   }).join('');
   document.getElementById('tableSummary').innerHTML=html||'<p style="color:var(--text-dim);font-size:.82rem;font-style:italic;">No data yet.</p>';
 }
-
+function clearAllAttendance(){
+  if(!confirm('Clear ALL check-in records? This cannot be undone.')) return;
+  fetch('/.netlify/functions/checkin',{
+    method:'DELETE',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({clearAll:true})
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    allCheckins=[];
+    renderAttendance([]);
+    renderTableSummary([]);
+    document.getElementById('attendanceSummary').textContent='';
+    showToast('All check-ins cleared ✓');
+  })
+  .catch(()=>showToast('Could not clear — please try again'));
+}
+  
 function exportAttendanceCSV(){
   if(!allCheckins.length){showToast('No check-ins to export');return;}
   const rows=[['Name','Table','Checked In At'],...allCheckins.map(c=>[c.name,c.table_no,c.checked_in_at])];
@@ -1522,6 +1541,23 @@ function renderLuckyDrawSummary(data){
     </div>`;
   }).join('');
   document.getElementById('luckyDrawTableSummary').innerHTML=html||'<p style="color:var(--text-dim);font-size:.82rem;font-style:italic;">No data yet.</p>';
+}
+function clearAllLuckyDraw(){
+  if(!confirm('Clear ALL lucky draw records? This cannot be undone.')) return;
+  fetch('/.netlify/functions/luckydraw',{
+    method:'DELETE',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({clearAll:true})
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    allLuckyDraw=[];
+    renderLuckyDraw([]);
+    renderLuckyDrawSummary([]);
+    document.getElementById('luckyDrawSummary').textContent='';
+    showToast('All lucky draw records cleared ✓');
+  })
+  .catch(()=>showToast('Could not clear — please try again'));
 }
 
 function exportLuckyDrawCSV(){
