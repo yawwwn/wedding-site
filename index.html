@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ Wedding Seating — Find Your Seat</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#c9a96e;--gold-light:#e8d5b0;--gold-dark:#8a6d3b;
+  --blush:#f2e8e0;--blush-deep:#e8d0c0;--cream:#faf7f2;
+  --dark:#2a2420;--mid:#6b5d54;--teal:#4a9e9e;
+}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 10%,rgba(201,169,110,.08) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 80% at 85% 80%,rgba(242,232,224,.6) 0%,transparent 60%),
+  url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a96e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;}
+.page{display:none;position:relative;z-index:1;}
+.page.active{display:block;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--dark);color:white;padding:12px 24px;font-size:.82rem;letter-spacing:.06em;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border-radius:2px;}
+.toast.show{opacity:1;}
+
+/* ── SEARCH PAGE ── */
+#searchPage{min-height:100vh;display:flex;flex-direction:column;}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:60px 24px;text-align:center;}
+.ornament{font-size:1.5rem;color:var(--gold);letter-spacing:.5em;margin-bottom:20px;opacity:.6;}
+.hero-names{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);font-weight:300;line-height:1;color:var(--dark);margin-bottom:12px;}
+.hero-names em{font-style:italic;color:var(--gold);}
+.hero-date{font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mid);margin-bottom:52px;}
+.search-container{width:100%;max-width:480px;position:relative;}
+.search-label{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:block;}
+.search-box{position:relative;display:flex;align-items:center;}
+.search-input{width:100%;padding:16px 56px 16px 20px;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;border:1px solid var(--gold-light);background:white;color:var(--dark);outline:none;transition:all .2s;}
+.search-input:focus{border-color:var(--gold);}
+.search-input::placeholder{color:var(--blush-deep);}
+.search-btn{position:absolute;right:0;height:100%;width:52px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.search-btn:hover{background:var(--gold-dark);}
+.suggestions{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1px solid var(--gold-light);z-index:100;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 30px rgba(42,36,32,.1);}
+.suggestion-item{padding:10px 20px;cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:1rem;border-bottom:1px solid var(--blush);transition:background .15s;display:flex;align-items:center;gap:10px;user-select:none;}
+.suggestion-item:last-child{border-bottom:none;}
+.suggestion-item:hover,.suggestion-item:active{background:var(--blush);}
+.suggestion-name{font-size:1.05rem;min-width:120px;flex-shrink:0;}
+.suggestion-meta{flex:1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.suggestion-pill{font-size:.65rem;color:var(--mid);background:var(--blush);border-radius:20px;padding:2px 9px;white-space:nowrap;letter-spacing:.04em;}
+.suggestion-pill.match{color:var(--gold-dark);background:rgba(201,169,110,.15);border:1px solid var(--gold-light);}
+.suggestion-table{font-size:.72rem;color:var(--gold);letter-spacing:.08em;white-space:nowrap;margin-left:auto;flex-shrink:0;}
+.voice-btn{margin:16px auto 0;display:flex;align-items:center;gap:10px;padding:10px 20px;background:transparent;border:1px solid var(--blush-deep);border-radius:40px;cursor:pointer;font-family:'Jost',sans-serif;font-size:.78rem;color:var(--mid);transition:all .2s;}
+.voice-btn:hover{border-color:var(--gold);color:var(--gold);}
+.voice-btn.listening{border-color:#e57373;color:#e57373;}
+.no-guests-notice{margin-top:40px;padding:16px 24px;background:rgba(201,169,110,.08);border:1px dashed var(--gold-light);border-radius:2px;font-size:.78rem;color:var(--mid);text-align:center;max-width:400px;}
+
+/* ── RESULT PAGE ── */
+.result-header{background:linear-gradient(135deg,#2a2420 0%,#3d3028 100%);padding:60px 40px 80px;text-align:center;position:relative;}
+.back-btn{position:absolute;top:20px;left:20px;padding:10px 20px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.back-btn:hover{border-color:white;color:white;}
+.result-greeting{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(201,169,110,.7);margin-bottom:8px;}
+.result-name{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,6vw,3.5rem);font-weight:300;color:white;margin-bottom:16px;}
+.result-table-badge{display:inline-block;padding:8px 24px;border:1px solid var(--gold);color:var(--gold);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;}
+.result-body{max-width:900px;margin:0 auto;width:100%;}
+.result-section{padding:28px 40px 24px;}
+.result-section + .result-section{border-top:1px solid var(--blush-deep);}
+.section-title{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--blush-deep);}
+
+/* Floor plan */
+.floorplan-wrap{width:100%;height:70vh;min-height:420px;overflow:hidden;border:2px solid var(--gold-light);background:var(--cream);border-radius:4px;position:relative;touch-action:none;cursor:grab;}
+.floorplan-svg{width:100%;height:100%;display:block;user-select:none;}
+.fp-hint{text-align:center;font-size:.68rem;color:var(--mid);letter-spacing:.08em;padding:8px 0 0;opacity:.7;}
+.fp-zoom-controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:6px;}
+.fp-zoom-btn{padding:4px 14px;background:white;border:1px solid var(--gold-light);color:var(--gold-dark);font-size:1.1rem;cursor:pointer;border-radius:2px;line-height:1;}
+.fp-zoom-btn:hover{background:var(--blush);}
+
+/* Tablemates */
+.tablemate-list{list-style:none;}
+.tablemate-item{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--blush);}
+.tablemate-item:last-child{border-bottom:none;}
+.tablemate-avatar{width:36px;height:36px;border-radius:50%;background:var(--blush-deep);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold-dark);flex-shrink:0;border:1px solid var(--gold-light);}
+.tablemate-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--dark);}
+.tablemate-rel{font-size:.72rem;color:var(--mid);margin-left:auto;}
+.you-badge{font-size:.65rem;background:var(--gold);color:white;padding:2px 8px;margin-left:8px;vertical-align:middle;}
+
+/* Menu */
+.menu-note{font-size:.75rem;color:var(--mid);font-style:italic;margin-bottom:18px;}
+.menu-img-display{width:100%;object-fit:contain;border:1px solid var(--blush-deep);border-radius:2px;display:block;cursor:zoom-in;}
+.menu-course{margin-bottom:20px;}
+.menu-course-name{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.menu-course-items{list-style:none;}
+.menu-course-items li{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--dark);padding:5px 0;border-bottom:1px solid var(--blush);display:flex;align-items:center;gap:8px;}
+.menu-course-items li::before{content:'✦';font-size:.5rem;color:var(--gold);flex-shrink:0;}
+.menu-course-items li:last-child{border-bottom:none;}
+
+/* ── STATION POPUP ── */
+.station-overlay{position:fixed;inset:0;background:rgba(42,36,32,.6);backdrop-filter:blur(4px);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
+.station-overlay.open{display:flex;}
+.station-popup{background:var(--cream);border:1px solid var(--blush-deep);border-radius:4px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(42,36,32,.3);animation:popIn .2s ease;}
+@keyframes popIn{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* Photo — fills full width, click to open lightbox */
+.station-img-wrap{width:100%;background:#1c1814;border-radius:3px 3px 0 0;overflow:hidden;display:none;position:relative;cursor:zoom-in;}
+.station-img-wrap.has-photo{display:block;}
+.station-popup-img{width:100%;height:auto;display:block;max-height:340px;object-fit:cover;transition:max-height .25s ease;}
+.img-expand-hint{position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.85);font-size:.62rem;letter-spacing:.07em;padding:3px 9px;border-radius:2px;pointer-events:none;}
+
+.station-popup-body{padding:22px 28px 26px;}
+.station-popup-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--dark);margin-bottom:8px;}
+.station-popup-desc{font-size:.9rem;line-height:1.75;color:var(--mid);white-space:pre-wrap;}
+.station-popup-close{display:block;width:100%;margin-top:20px;padding:12px;background:var(--gold);color:white;border:none;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:background .15s;}
+.station-popup-close:hover{background:var(--gold-dark);}
+
+/* ── LIGHTBOX ── */
+.lightbox{position:fixed;inset:0;background:rgba(8,6,4,.93);z-index:9999;display:none;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:2px;box-shadow:0 0 80px rgba(0,0,0,.7);}
+.lightbox-close{position:fixed;top:16px;right:20px;color:rgba(255,255,255,.7);font-size:1.8rem;cursor:pointer;line-height:1;background:none;border:none;transition:color .15s;z-index:10000;}
+.lightbox-close:hover{color:white;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp .5s ease forwards;}
+.delay-1{animation-delay:.1s;opacity:0;}
+.delay-2{animation-delay:.2s;opacity:0;}
+.delay-3{animation-delay:.35s;opacity:0;}
+@media(max-width:600px){.result-section{padding:20px;}.result-header{padding:40px 20px 60px;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- SEARCH PAGE -->
+<div class="page active" id="searchPage">
+  <div class="hero">
+    <div class="ornament fade-up">✦ ✦ ✦</div>
+    <div class="hero-names fade-up delay-1"><em>Jiahe</em> &amp; <em>YWPY</em></div>
+    <div class="hero-date fade-up delay-2">Welcome to Our Wedding Celebration</div>
+    <div class="search-container fade-up delay-3">
+      <span class="search-label">Find Your Seat</span>
+      <div class="search-box">
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="Your name or nickname…"
+          oninput="onSearchInput()" onkeydown="onSearchKey(event)"
+          autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="search-btn" onclick="doSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="18" height="18">
+            <circle cx="11" cy="11" r="6"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+        <span>🎤</span><span id="voiceLabel">Search by voice</span>
+      </button>
+    </div>
+    <div id="noGuestsNotice" class="no-guests-notice" style="display:none;">
+      Guest list not yet loaded. Please check back soon!
+    </div>
+  </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="page" id="resultPage">
+  <div class="result-header">
+    <button class="back-btn" onclick="showPage('searchPage')">← Back</button>
+    <div class="result-greeting" id="resultGreeting">Welcome,</div>
+    <div class="result-name" id="resultName"></div>
+    <div class="result-table-badge" id="resultTableBadge">Table —</div>
+    <div style="margin-top:20px;">
+      <button id="checkinBtn" onclick="checkIn()" style="padding:10px 32px;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .25s;border-radius:2px;">✦ Check In</button>
+      <div id="checkinStatus" style="margin-top:10px;font-size:.72rem;color:rgba(201,169,110,.6);letter-spacing:.1em;min-height:18px;"></div>
+    </div>
+  </div>
+  <div class="result-body">
+    <div class="result-section" style="padding-left:0;padding-right:0;">
+      <div class="section-title" style="margin-bottom:14px;padding:0 28px;">Venue Map</div>
+      <div class="fp-zoom-controls">
+        <button class="fp-zoom-btn" onclick="zoomFP(-0.25)">−</button>
+        <button class="fp-zoom-btn" onclick="zoomFP(0)" title="Reset">⤢</button>
+        <button class="fp-zoom-btn" onclick="zoomFP(0.25)">+</button>
+      </div>
+      <div class="floorplan-wrap">
+        <svg id="floorplanSVG" class="floorplan-svg" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <p class="fp-hint">✦ Tap highlighted stations · Pinch or use +/− to zoom · Drag to pan</p>
+    </div>
+    <div class="result-section">
+      <div class="section-title">Your Tablemates</div>
+      <div id="tablemateList"></div>
+    </div>
+    <div class="result-section" id="menuSection" style="display:none;">
+      <div class="section-title">Tonight's Menu</div>
+      <div id="menuContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATION POPUP -->
+<div class="station-overlay" id="stationOverlay" onclick="if(event.target===this)closeStationPopup()">
+  <div class="station-popup">
+    <div class="station-img-wrap" id="stationImgWrap" onclick="openLightbox(this.querySelector('img').src)">
+      <img id="stationPopupImg" class="station-popup-img" src="" alt="">
+      <div class="img-expand-hint">Tap to enlarge ⤢</div>
+    </div>
+    <div class="station-popup-body">
+      <div class="station-popup-title" id="stationPopupTitle"></div>
+      <div class="station-popup-desc" id="stationPopupDesc"></div>
+      <button class="station-popup-close" onclick="closeStationPopup()">Close ✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+// ════════════════════════════════════
+// DATA
+// ════════════════════════════════════
+let guests=[], columns=[], activeGuest=null, recognition=null;
+let STATION_INFO={}, MENU={mode:'text',image:null,note:'',courses:[]};
+let fpElements=[], fpReady=false;
+
+(function load(){
+  try{
+    // Load non-guest data from localStorage as before
+    const si=localStorage.getItem('weddingStations');
+    if(si) STATION_INFO=JSON.parse(si);
+    const m=localStorage.getItem('weddingMenu');
+    if(m) MENU=JSON.parse(m);
+    const fp=localStorage.getItem('weddingFP');
+    if(fp){const d=JSON.parse(fp);fpElements=d.elements||[];fpReady=fpElements.length>0;}
+    // Try localStorage guest fallback while DB loads
+    const g=localStorage.getItem('weddingGuests');
+    if(g){const d=JSON.parse(g);guests=d.guests||[];columns=d.columns||[];}
+  }catch(e){console.warn(e);}
+})();
+
+// Load guests from Neon DB (overrides localStorage if available)
+fetch('/.netlify/functions/get-guests')
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.guests&&data.guests.length){
+      guests=data.guests;
+      columns=guests.length?Object.keys(guests[0]):[];
+      document.getElementById('noGuestsNotice').style.display='none';
+    } else if(!guests.length){
+      document.getElementById('noGuestsNotice').style.display='';
+    }
+  })
+  .catch(()=>{
+    // DB unavailable, fall back to localStorage guests already loaded
+    if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
+  });
+
+if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
+
+// ════════════════════════════════════
+// SEARCH — FIX #1: dropdown fills box + navigates immediately
+// ════════════════════════════════════
+// Search across all non-table columns, show matching fields as pills
+function matchGuest(g, q){
+  // search every field except 'table'
+  return Object.entries(g).some(([k,v])=>
+    k.toLowerCase()!=='table' && String(v).toLowerCase().includes(q)
+  );
+}
+function guestPills(g, q){
+  // Show up to 2 extra non-name fields as pills, highlight if they match query
+  const nameKey=columns.find(c=>c.toLowerCase()==='name')||columns[0]||'name';
+  const pills=[];
+  for(const [k,v] of Object.entries(g)){
+    if(k.toLowerCase()==='table') continue;
+    if(k===nameKey) continue;
+    if(!v||String(v).trim()==='') continue;
+    const matches=String(v).toLowerCase().includes(q);
+    pills.push({label:String(v),matches});
+    if(pills.length>=2) break;
+  }
+  return pills.map(p=>`<span class="suggestion-pill${p.matches?' match':''}">${esc(p.label)}</span>`).join('');
+}
+
+function onSearchInput(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const sug=document.getElementById('suggestions');
+  if(!q||q.length<1){sug.style.display='none';return;}
+  const matches=guests.filter(g=>matchGuest(g,q)).slice(0,10);
+  if(!matches.length){sug.style.display='none';return;}
+  sug.innerHTML=matches.map(g=>{
+    const name=g.name||g.alias||Object.values(g)[0];
+    const idx=guests.indexOf(g);
+    return `<div class="suggestion-item"
+      onmousedown="event.preventDefault()"
+      onclick="selectGuest(${idx})">
+      <span class="suggestion-name">${esc(name)}</span>
+      <span class="suggestion-meta">${guestPills(g,q)}</span>
+      <span class="suggestion-table">Table ${esc(g.table)}</span>
+    </div>`;
+  }).join('');
+  sug.style.display='block';
+}
+
+function selectGuest(idx){
+  const g=guests[idx];
+  if(!g) return;
+  document.getElementById('searchInput').value=g.name||g.alias||Object.values(g)[0];
+  document.getElementById('suggestions').style.display='none';
+  showResult(g);
+}
+
+function onSearchKey(e){
+  if(e.key==='Enter') doSearch();
+  if(e.key==='Escape'){document.getElementById('suggestions').style.display='none';document.getElementById('searchInput').blur();}
+}
+
+function doSearch(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  document.getElementById('suggestions').style.display='none';
+  if(!q) return;
+  const m=guests.filter(g=>matchGuest(g,q));
+  if(m.length===1){showResult(m[0]);return;}
+  if(m.length>1){onSearchInput();document.getElementById('suggestions').style.display='block';return;}
+  showToast('No guest found — try your name, nickname or unit');
+}
+
+// ════════════════════════════════════
+// RESULT
+// ════════════════════════════════════
+function showResult(guest){
+  activeGuest=guest;
+  const name=guest.name||guest.alias||Object.values(guest)[0];
+  const table=guest.table;
+  document.getElementById('resultName').textContent=name;
+  document.getElementById('resultTableBadge').textContent='Table '+table;
+  const hr=new Date().getHours();
+  document.getElementById('resultGreeting').textContent=hr<12?'Good Morning,':hr<18?'Welcome,':'Good Evening,';
+  const mates=guests.filter(g=>g.table===table);
+  document.getElementById('tablemateList').innerHTML='<ul class="tablemate-list">'+mates.map(g=>{
+    const n=g.name||g.alias||Object.values(g)[0];
+    const isYou=g===guest;
+    const rel=g.relationship||'';
+    return `<li class="tablemate-item">
+      <div class="tablemate-avatar" style="${isYou?'background:var(--gold);color:white;border-color:var(--gold);':''}">${n.charAt(0).toUpperCase()}</div>
+      <span class="tablemate-name">${esc(n)}${isYou?'<span class="you-badge">You</span>':''}</span>
+      ${rel?`<span class="tablemate-rel">${esc(rel)}</span>`:''}
+    </li>`;
+  }).join('')+'</ul>';
+  renderFloorPlan(table);
+  renderMenu();
+  showPage('resultPage');
+  setTimeout(()=>document.querySelector('.result-header').scrollIntoView({behavior:'smooth',block:'start'}),120);
+  setTimeout(restoreCheckinState,200);
+}
+
+// ════════════════════════════════════
+// ZOOM
+// ════════════════════════════════════
+// ── PAN + ZOOM ──────────────────────
+let fpZoom=1, fpBaseVB=null, fpVB=null;
+
+function getVB(svg){
+  return svg.getAttribute('viewBox').split(' ').map(Number);
+}
+function setVB(svg,[x,y,w,h]){
+  svg.setAttribute('viewBox',`${x} ${y} ${w} ${h}`);
+  fpVB=[x,y,w,h];
+}
+function zoomFP(delta){
+  const svg=document.getElementById('floorplanSVG');
+  if(!fpBaseVB){ fpBaseVB=getVB(svg); fpVB=[...fpBaseVB]; }
+  if(delta===0){ fpZoom=1; setVB(svg,fpBaseVB); return; }
+  fpZoom=Math.min(6,Math.max(0.3,fpZoom+delta));
+  const cx=fpBaseVB[0]+fpBaseVB[2]/2;
+  const cy=fpBaseVB[1]+fpBaseVB[3]/2;
+  const nw=fpBaseVB[2]/fpZoom, nh=fpBaseVB[3]/fpZoom;
+  setVB(svg,[cx-nw/2, cy-nh/2, nw, nh]);
+}
+
+// Mouse drag pan
+(function initPan(){
+  let drag=false, lastX=0, lastY=0;
+  function svgEl(){ return document.getElementById('floorplanSVG'); }
+  function onDown(e){
+    const svg=svgEl(); if(!svg||!fpVB) return;
+    drag=true;
+    lastX=e.clientX??e.touches[0].clientX;
+    lastY=e.clientY??e.touches[0].clientY;
+    svg.closest('.floorplan-wrap').style.cursor='grabbing';
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!drag) return;
+    const svg=svgEl(); if(!svg||!fpVB) return;
+    const cx=e.clientX??e.touches[0].clientX;
+    const cy2=e.clientY??e.touches[0].clientY;
+    const rect=svg.getBoundingClientRect();
+    const scaleX=fpVB[2]/rect.width;
+    const scaleY=fpVB[3]/rect.height;
+    const dx=(lastX-cx)*scaleX;
+    const dy=(lastY-cy2)*scaleY;
+    lastX=cx; lastY=cy2;
+    setVB(svg,[fpVB[0]+dx, fpVB[1]+dy, fpVB[2], fpVB[3]]);
+    e.preventDefault();
+  }
+  function onUp(e){
+    drag=false;
+    const svg=svgEl();
+    if(svg) svg.closest('.floorplan-wrap').style.cursor='grab';
+  }
+
+  // Pinch-to-zoom on touch
+  let lastDist=null;
+  function onTouchMove(e){
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.hypot(dx,dy);
+      if(lastDist){
+        const delta=(dist-lastDist)*0.008;
+        zoomFP(delta);
+      }
+      lastDist=dist;
+      e.preventDefault();
+    } else {
+      lastDist=null;
+      onMove(e);
+    }
+  }
+  function onTouchEnd(e){ lastDist=null; onUp(e); }
+
+  // Scroll wheel zoom
+  function onWheel(e){
+    e.preventDefault();
+    zoomFP(e.deltaY<0?0.2:-0.2);
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    const wrap=document.querySelector('.floorplan-wrap');
+    if(!wrap) return;
+    wrap.addEventListener('mousedown',onDown);
+    wrap.addEventListener('touchstart',onDown,{passive:false});
+    document.addEventListener('mousemove',onMove);
+    wrap.addEventListener('touchmove',onTouchMove,{passive:false});
+    document.addEventListener('mouseup',onUp);
+    wrap.addEventListener('touchend',onTouchEnd);
+    wrap.addEventListener('wheel',onWheel,{passive:false});
+  });
+})();
+
+// ════════════════════════════════════
+// FLOOR PLAN — FIX #2: use SVG viewBox = admin coordinate space (no manual scaling)
+// ════════════════════════════════════
+function fpGW(el){return ['round-table','circle-el','champagne'].includes(el.type)?(el.size||70):(el.w||100);}
+function fpGH(el){return ['round-table','circle-el','champagne'].includes(el.type)?(el.size||70):(el.h||60);}
+function fpRgba(hex,a){
+  let h=(hex||'#c9a96e').replace('#','');
+  if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function renderFloorPlan(activeTable){
+  fpBaseVB=null; fpVB=null; fpZoom=1;
+  const svg=document.getElementById('floorplanSVG');
+  if(!svg) return;
+
+  if(!fpReady||!fpElements.length){
+    svg.setAttribute('viewBox','0 0 760 520');
+    svg.innerHTML=`<rect width="760" height="520" fill="#f5f1eb"/>
+      <text x="380" y="260" font-family="Jost,sans-serif" font-size="13" fill="#b0a090" text-anchor="middle" dominant-baseline="middle" letter-spacing=".15em">FLOOR PLAN NOT YET CONFIGURED</text>`;
+    return;
+  }
+
+  // ── KEY FIX: derive viewBox from element bounding box so coordinates are
+  //    identical to the admin canvas — SVG scaling handles fit automatically ──
+  let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity;
+  fpElements.forEach(el=>{
+    const w=fpGW(el),h=fpGH(el);
+    mnX=Math.min(mnX,el.x); mnY=Math.min(mnY,el.y);
+    mxX=Math.max(mxX,el.x+w); mxY=Math.max(mxY,el.y+h);
+  });
+  const pad=15;
+  const vx=mnX-pad, vy=mnY-pad, vw=mxX-mnX+pad*2, vh=mxY-mnY+pad*2;
+  svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  fpVB=[vx,vy,vw,vh];
+
+  const norm=t=>t?String(t).toLowerCase().replace(/^#/,'').trim():'';
+  const aN=norm(activeTable);
+  const isAct=el=>{
+    const lbl=norm(el.label);
+    if(lbl===aN||lbl==='#'+aN) return true;
+    const m=lbl.match(/(\d+)$/);
+    return m?m[1]===aN:false;
+  };
+  const hasStn=label=>{
+    if(!label) return false;
+    const k=label.toLowerCase().trim();
+    return Object.keys(STATION_INFO).some(key=>k.includes(key.toLowerCase())||key.toLowerCase().includes(k));
+  };
+
+  let h=`<defs>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r=".7" fill="rgba(201,169,110,.1)"/>
+    </pattern>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0,7 3.5,0 7" fill="#c9a96e" opacity=".6"/>
+    </marker>
+  </defs>
+  <rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="#faf7f2"/>
+  <rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="url(#dots)"/>`;
+
+  // rooms behind everything
+  const sorted=[...fpElements].sort((a,b)=>(['l-room','room'].includes(a.type)?0:1)-(['l-room','room'].includes(b.type)?0:1));
+
+  sorted.forEach(el=>{
+    const w=fpGW(el),eh=fpGH(el);
+    // Use original coords directly — no transform math
+    const x=el.x,y=el.y,cx=x+w/2,cy=y+eh/2;
+    const rot=el.rot||0;
+    const act=isAct(el);
+    const clk=hasStn(el.label);
+    const c=el.color||'#c9a96e';
+    const safeLabel=(el.label||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const gAttr=clk?` style="cursor:pointer;" onclick="openStationPopup('${safeLabel}')"` :'';
+    const glow=act?` filter="drop-shadow(0 0 ${Math.round(Math.max(w,eh)*.1)}px ${c})"` :'';
+
+    h+=`<g transform="rotate(${rot},${cx},${cy})"${gAttr}${glow}>`;
+
+    if(el.type==='l-room'){
+      const nw=el.nw||270,nh=el.nh||285,notch=el.notch||'br';
+      let pts='';
+      switch(notch){
+        case 'br':pts=`${x},${y} ${x+w},${y} ${x+w},${y+eh-nh} ${x+w-nw},${y+eh-nh} ${x+w-nw},${y+eh} ${x},${y+eh}`;break;
+        case 'bl':pts=`${x},${y} ${x+w},${y} ${x+w},${y+eh} ${x+nw},${y+eh} ${x+nw},${y+eh-nh} ${x},${y+eh-nh}`;break;
+        case 'tr':pts=`${x},${y+nh} ${x+w-nw},${y+nh} ${x+w-nw},${y} ${x+w},${y} ${x+w},${y+eh} ${x},${y+eh}`;break;
+        default:pts=`${x},${y} ${x+w},${y} ${x+w},${y+eh} ${x},${y+eh}`;
+      }
+      h+=`<polygon points="${pts}" fill="rgba(248,244,238,.92)" stroke="${c}" stroke-width="2.5"/>`;
+      h+=`<text x="${cx}" y="${cy*.3+y*.7}" font-family="Jost,sans-serif" font-size="${Math.max(9,Math.min(20,w*.016))}" fill="${fpRgba(c,.16)}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".25em">${(el.label||'VENUE').toUpperCase()}</text>`;
+    } else if(el.type==='room'){
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${eh}" fill="${fpRgba(c,.1)}" stroke="${c}" stroke-width="1.8" rx="2" stroke-dasharray="${el.dash?'4,2':'none'}"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.min(13,w*.09)}" fill="${fpRgba(c,.55)}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em">${(el.label||'ROOM').toUpperCase()}</text>`;
+    } else if(el.type==='round-table'){
+      const r=w/2-3,s=Math.min(el.seats||8,16);
+      let dots='';
+      for(let i=0;i<s;i++){
+        const a=(i/s)*2*Math.PI-Math.PI/2;
+        dots+=`<circle cx="${(cx+(r+8)*Math.cos(a)).toFixed(1)}" cy="${(cy+(r+8)*Math.sin(a)).toFixed(1)}" r="${Math.max(3,w*.065)}" fill="${fpRgba(c,.48)}" stroke="${c}" stroke-width=".8"/>`;
+      }
+      const fill=act?fpRgba(c,.35):fpRgba(c,.14);
+      const sk=act?c:fpRgba(c,.7);
+      const sw=act?2.5:1.8;
+      h+=`${dots}<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${sk}" stroke-width="${sw}"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${act?Math.min(14,r*.55):Math.min(11,r*.45)}" fill="${act?c:fpRgba(c,.85)}" text-anchor="middle" dominant-baseline="middle" font-weight="${act?'800':'400'}" letter-spacing=".04em">${el.label||''}</text>`;
+      if(act) h+=`<circle cx="${cx}" cy="${cy}" r="${r+6}" fill="none" stroke="${c}" stroke-width="2" opacity=".5" stroke-dasharray="4,3"/>`;
+    } else if(el.type==='rect-table'){
+      const s=el.seats||6,t=Math.ceil(s/2),b=Math.floor(s/2);
+      let dd='';
+      for(let i=0;i<t;i++){const dx=10+(i/(t-1||1))*(w-20);dd+=`<rect x="${(x+dx-5).toFixed(1)}" y="${y+1}" width="10" height="8" rx="2" fill="${fpRgba(c,.48)}" stroke="${c}" stroke-width="1"/>`;}
+      for(let i=0;i<b;i++){const dx=10+(i/(b-1||1))*(w-20);dd+=`<rect x="${(x+dx-5).toFixed(1)}" y="${y+eh-9}" width="10" height="8" rx="2" fill="${fpRgba(c,.48)}" stroke="${c}" stroke-width="1"/>`;}
+      h+=`${dd}<rect x="${x}" y="${y+10}" width="${w}" height="${eh-20}" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="2" rx="2"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.min(10,w*.12,(eh-20)*.55)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".04em">${el.label||''}</text>`;
+    } else if(el.type==='recep-table'){
+      const lH=Math.max(4,eh*.1),tH=Math.max(5,eh*.18);
+      h+=`<rect x="${x}" y="${y+tH}" width="${w}" height="${eh-tH-lH}" rx="2" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="2"/>`;
+      h+=`<rect x="${x}" y="${y+tH}" width="${w}" height="${tH*.9}" rx="2 2 0 0" fill="${fpRgba(c,.4)}"/>`;
+      h+=`<rect x="${x+w*.06}" y="${y+eh-lH}" width="${w*.08}" height="${lH}" rx="1" fill="${fpRgba(c,.48)}"/>`;
+      h+=`<rect x="${x+w*.86}" y="${y+eh-lH}" width="${w*.08}" height="${lH}" rx="1" fill="${fpRgba(c,.48)}"/>`;
+      h+=`<text x="${cx}" y="${y+tH+(eh-tH-lH)/2}" font-family="Jost,sans-serif" font-size="${Math.min(10,w*.09,eh*.3)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".08em">${(el.label||'Reception').toUpperCase()}</text>`;
+    } else if(el.type==='stage'){
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${eh}" fill="${fpRgba(c,.15)}" stroke="${c}" stroke-width="2" rx="3"/>`;
+      h+=`<rect x="${x}" y="${y+eh-8}" width="${w}" height="8" fill="${fpRgba(c,.4)}" rx="0 0 3 3"/>`;
+      h+=`<text x="${cx}" y="${cy-2}" font-family="Jost,sans-serif" font-size="${Math.min(12,w*.11)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".12em" font-weight="600">STAGE</text>`;
+    } else if(el.type==='backdrop'){
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${eh}" fill="${fpRgba(c,.1)}" stroke="${c}" stroke-width="1.5" rx="1"/>`;
+      h+=`<line x1="${x}" y1="${y}" x2="${x+w}" y2="${y+eh}" stroke="${c}" stroke-width=".8" opacity=".3"/>`;
+      h+=`<line x1="${x+w}" y1="${y}" x2="${x}" y2="${y+eh}" stroke="${c}" stroke-width=".8" opacity=".3"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.min(11,w*.12,eh*.35)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||''}</text>`;
+    } else if(el.type==='sofa'){
+      h+=`<rect x="${x}" y="${y+eh*.35}" width="${w}" height="${eh*.65}" rx="5" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="1.5"/>`;
+      h+=`<rect x="${x}" y="${y+eh*.1}" width="${w*.18}" height="${eh*.65}" rx="4" fill="${fpRgba(c,.48)}" stroke="${c}" stroke-width="1"/>`;
+      h+=`<rect x="${x+w*.82}" y="${y+eh*.1}" width="${w*.18}" height="${eh*.65}" rx="4" fill="${fpRgba(c,.48)}" stroke="${c}" stroke-width="1"/>`;
+      h+=`<text x="${cx}" y="${y+eh*.67}" font-family="Jost,sans-serif" font-size="${Math.min(9,w*.12,eh*.28)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||''}</text>`;
+    } else if(el.type==='champagne'||el.type==='circle-el'){
+      const r=w/2-2;
+      h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="1.8" stroke-dasharray="${el.dash?'6,3':'none'}"/>`;
+      if(el.type==='champagne'){
+        h+=`<text x="${cx}" y="${cy+1}" font-size="${r*.8}" text-anchor="middle" dominant-baseline="middle">🥂</text>`;
+        h+=`<text x="${cx}" y="${cy+r*.65}" font-family="Jost,sans-serif" font-size="${Math.min(9,r*.32)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||''}</text>`;
+      } else {
+        h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.min(10,r*.38)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||''}</text>`;
+      }
+    } else if(el.type==='photobooth'){
+      h+=`<rect x="${x}" y="${y+eh*.18}" width="${w}" height="${eh*.82}" rx="4" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="1.8"/>`;
+      h+=`<rect x="${x+w*.15}" y="${y}" width="${w*.7}" height="${eh*.28}" rx="3" fill="${fpRgba(c,.25)}" stroke="${c}" stroke-width="1.5"/>`;
+      const cr=Math.min(w,eh)*.22;
+      h+=`<circle cx="${cx}" cy="${y+eh*.62}" r="${cr}" fill="none" stroke="${c}" stroke-width="1.8"/>`;
+      h+=`<circle cx="${cx}" cy="${y+eh*.62}" r="${cr*.4}" fill="${fpRgba(c,.5)}"/>`;
+      h+=`<circle cx="${x+w*.78}" cy="${y+eh*.28}" r="${Math.min(w,eh)*.07}" fill="${c}" opacity=".7"/>`;
+      h+=`<text x="${cx}" y="${y+eh*.13}" font-family="Jost,sans-serif" font-size="${Math.min(9,w*.13)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||'Photo Booth'}</text>`;
+    } else if(el.type==='videobooth'){
+      h+=`<rect x="${x}" y="${y+eh*.12}" width="${w*.68}" height="${eh*.76}" rx="3" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="1.8"/>`;
+      h+=`<polygon points="${x+w*.68},${y+eh*.3} ${x+w*.98},${y+eh*.18} ${x+w*.98},${y+eh*.82} ${x+w*.68},${y+eh*.7}" fill="${fpRgba(c,.3)}" stroke="${c}" stroke-width="1.5"/>`;
+      const vr=Math.min(w,eh)*.2;
+      h+=`<circle cx="${x+w*.34}" cy="${cy}" r="${vr}" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+      h+=`<circle cx="${x+w*.34}" cy="${cy}" r="${vr*.4}" fill="${fpRgba(c,.5)}"/>`;
+      h+=`<text x="${x+w*.34}" y="${y+eh*.93}" font-family="Jost,sans-serif" font-size="${Math.min(9,w*.12)}" fill="${c}" text-anchor="middle" dominant-baseline="middle">${el.label||'Video Booth'}</text>`;
+    } else if(el.type==='door'){
+      h+=`<line x1="${x}" y1="${y+eh}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="3.5" stroke-linecap="square"/>`;
+      h+=`<line x1="${x}" y1="${y+eh}" x2="${x+w}" y2="${y+eh}" stroke="${c}" stroke-width="3.5" stroke-linecap="square"/>`;
+      h+=`<path d="M${x} ${y} A${w} ${eh} 0 0 1 ${x+w} ${y+eh}" fill="${fpRgba(c,.1)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+      if(el.label) h+=`<text x="${x+w*.35}" y="${y+eh*.42}" font-family="Jost,sans-serif" font-size="${Math.min(9,w*.18)}" fill="${fpRgba(c,.85)}" text-anchor="middle" dominant-baseline="middle">${el.label}</text>`;
+    } else if(el.type==='door-closed'){
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${eh}" rx="2" fill="${fpRgba(c,.18)}" stroke="${c}" stroke-width="2.5"/>`;
+      h+=`<line x1="${x}" y1="${y}" x2="${x+w}" y2="${y+eh}" stroke="${c}" stroke-width="1.2" opacity=".45"/>`;
+      h+=`<line x1="${x+w}" y1="${y}" x2="${x}" y2="${y+eh}" stroke="${c}" stroke-width="1.2" opacity=".45"/>`;
+    } else if(el.type==='easel'){
+      const bw=w*.72,bh=eh*.52,bx2=x+(w-bw)/2;
+      h+=`<rect x="${bx2}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${fpRgba(c,.14)}" stroke="${c}" stroke-width="2"/>`;
+      h+=`<rect x="${bx2}" y="${y}" width="${bw}" height="${bh*.22}" rx="2 2 0 0" fill="${fpRgba(c,.35)}"/>`;
+      h+=`<text x="${cx}" y="${y+bh*.58}" font-family="Cormorant Garamond,serif" font-size="${Math.min(12,bw*.19)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" font-style="italic">${el.label||'Welcome'}</text>`;
+      h+=`<line x1="${cx}" y1="${y+bh}" x2="${cx-w*.3}" y2="${y+eh}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`;
+      h+=`<line x1="${cx}" y1="${y+bh}" x2="${cx+w*.3}" y2="${y+eh}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`;
+      h+=`<line x1="${cx}" y1="${y+bh}" x2="${cx}" y2="${y+eh*.82}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`;
+    } else if(el.type==='screen'){
+      const thick=Math.max(6,Math.round(eh*.28));
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${eh}" rx="3" fill="${fpRgba(c,.12)}" stroke="${c}" stroke-width="2"/>`;
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${thick}" rx="3 3 0 0" fill="${fpRgba(c,.45)}"/>`;
+      h+=`<text x="${cx}" y="${cy+1}" font-family="Jost,sans-serif" font-size="${Math.min(10,eh*.45)}" fill="${fpRgba(c,.8)}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".1em">SCREEN</text>`;
+    } else if(el.type==='wc-male'||el.type==='wc-female'){
+      const s=Math.min(w,eh),wcc=el.type==='wc-male'?'#6ab0e0':'#e08ab0';
+      h+=`<rect x="${x+1}" y="${y+1}" width="${w-2}" height="${eh-2}" rx="${s*.1}" fill="${fpRgba(wcc,.15)}" stroke="${wcc}" stroke-width="1.8"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.max(7,s*.45)}" fill="${wcc}" text-anchor="middle" dominant-baseline="middle">${el.type==='wc-male'?'♂':'♀'}</text>`;
+    } else if(el.type==='text-label'){
+      h+=`<text x="${cx}" y="${cy}" font-family="Cormorant Garamond,serif" font-size="${Math.min(18,eh*.7)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" font-style="italic">${el.label||''}</text>`;
+    } else if(el.type==='line'||el.type==='line-dashed'){
+      const lw=Math.max(1.5,eh*.6);
+      h+=`<line x1="${x}" y1="${cy}" x2="${x+w}" y2="${cy}" stroke="${c}" stroke-width="${lw}" stroke-linecap="round" stroke-dasharray="${el.type==='line-dashed'?'10,5':'none'}"/>`;
+      if(el.label) h+=`<text x="${cx}" y="${cy-lw-3}" font-family="Jost,sans-serif" font-size="9" fill="${c}" text-anchor="middle" dominant-baseline="auto">${el.label}</text>`;
+    } else if(el.type==='arrow'){
+      h+=`<line x1="${x+3}" y1="${cy}" x2="${x+w-7}" y2="${cy}" stroke="${c}" stroke-width="${Math.max(2,eh*.35)}" stroke-linecap="round" marker-end="url(#arr)"/>`;
+      if(el.label) h+=`<text x="${cx}" y="${cy-6}" font-family="Jost,sans-serif" font-size="${Math.min(9,w*.14)}" fill="${c}" text-anchor="middle" dominant-baseline="auto">${el.label}</text>`;
+    } else if(el.type==='rectangle'){
+      h+=`<rect x="${x+1}" y="${y+1}" width="${w-2}" height="${eh-2}" fill="${fpRgba(c,.1)}" stroke="${c}" stroke-width="1.8" rx="2" stroke-dasharray="${el.dash?'6,3':'none'}"/>`;
+      h+=`<text x="${cx}" y="${cy}" font-family="Jost,sans-serif" font-size="${Math.min(11,w*.11,eh*.35)}" fill="${c}" text-anchor="middle" dominant-baseline="middle" letter-spacing=".06em">${el.label||''}</text>`;
+    }
+
+    // ✦ sparkle beside label for clickable stations
+    if(clk&&!act){
+      const pr=Math.max(w,eh)/2;
+      const sparkleX=cx+pr+10;
+      const sparkleY=cy-pr-4;
+      h+=`<text x="${sparkleX}" y="${sparkleY}" font-size="11" text-anchor="middle" dominant-baseline="middle" fill="${c}" opacity=".95">✦</text>`;
+    }
+    h+='</g>';
+  });
+
+  svg.innerHTML=h;
+}
+
+// ════════════════════════════════════
+// MENU
+// ════════════════════════════════════
+function renderMenu(){
+  const sec=document.getElementById('menuSection');
+  const cont=document.getElementById('menuContent');
+  sec.style.display='none';
+  if(!MENU||(!MENU.image&&(!MENU.courses||!MENU.courses.length)&&!MENU.note)) return;
+  sec.style.display='';
+  let html='';
+  if(MENU.note) html+=`<p class="menu-note">${esc(MENU.note)}</p>`;
+  if(MENU.mode==='image'&&MENU.image){
+    html+=`<img class="menu-img-display" src="${MENU.image}" alt="Menu" onclick="openLightbox(this.src)" title="Click to enlarge">
+    <p style="font-size:.68rem;color:var(--mid);text-align:center;margin-top:6px;letter-spacing:.06em;">Tap image to enlarge ⤢</p>`;
+  }
+  if(MENU.mode!=='image'&&MENU.courses&&MENU.courses.length){
+    MENU.courses.forEach(c=>{
+      html+=`<div class="menu-course"><div class="menu-course-name">${esc(c.course)}</div><ul class="menu-course-items">${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`;
+    });
+  }
+  cont.innerHTML=html;
+}
+
+// ════════════════════════════════════
+// STATION POPUP — FIX #3: full-width photo + lightbox on tap
+// ════════════════════════════════════
+function getStation(label){
+  if(!label) return null;
+  const k=label.toLowerCase().trim();
+  for(const [key,val] of Object.entries(STATION_INFO)){
+    if(k.includes(key.toLowerCase())||key.toLowerCase().includes(k)) return val;
+  }
+  return null;
+}
+function openStationPopup(label){
+  const info=getStation(label);
+  if(!info) return;
+  document.getElementById('stationPopupTitle').textContent=info.title||label;
+  document.getElementById('stationPopupDesc').textContent=info.desc||'';
+  const wrap=document.getElementById('stationImgWrap');
+  const img=document.getElementById('stationPopupImg');
+  if(info.photo){
+    img.src=info.photo;
+    wrap.classList.add('has-photo');
+  } else {
+    img.src='';
+    wrap.classList.remove('has-photo');
+  }
+  document.getElementById('stationOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeStationPopup(){
+  document.getElementById('stationOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ════════════════════════════════════
+// LIGHTBOX
+// ════════════════════════════════════
+function openLightbox(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeLightbox();closeStationPopup();}
+});
+
+// ════════════════════════════════════
+// VOICE
+// ════════════════════════════════════
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){showToast('Voice not supported on this browser');return;}
+  if(recognition){recognition.stop();recognition=null;resetVoice();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='en-SG';recognition.interimResults=false;
+  document.getElementById('voiceBtn').classList.add('listening');
+  document.getElementById('voiceLabel').textContent='Listening…';
+  recognition.onresult=e=>{
+    document.getElementById('searchInput').value=e.results[0][0].transcript;
+    onSearchInput();doSearch();resetVoice();
+  };
+  recognition.onerror=recognition.onend=resetVoice;
+  recognition.start();
+}
+function resetVoice(){
+  document.getElementById('voiceBtn').classList.remove('listening');
+  document.getElementById('voiceLabel').textContent='Search by voice';
+  recognition=null;
+}
+
+// ════════════════════════════════════
+// CHECK-IN
+// ════════════════════════════════════
+function checkIn(){
+  const btn=document.getElementById('checkinBtn');
+  const status=document.getElementById('checkinStatus');
+  if(btn.dataset.done) return;
+
+  const name=activeGuest.name||activeGuest.alias||Object.values(activeGuest)[0];
+  const table_no=activeGuest.table;
+
+  btn.textContent='Checking in…';
+  btn.style.opacity='.5';
+  btn.style.cursor='default';
+
+  fetch('/.netlify/functions/checkin',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,table_no})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.duplicate){
+      btn.textContent='✓ Already Checked In';
+      btn.style.borderColor='#4a9e9e';
+      btn.style.color='#4a9e9e';
+      btn.style.opacity='1';
+      status.textContent='You're already on the list — enjoy the celebration!';
+    } else {
+      btn.textContent='✓ Checked In';
+      btn.style.borderColor='#4a9e9e';
+      btn.style.color='#4a9e9e';
+      btn.style.opacity='1';
+      status.textContent='Welcome! Your attendance has been recorded ✦';
+    }
+    btn.dataset.done='1';
+    localStorage.setItem('checkedIn_'+name,'1');
+  })
+  .catch(()=>{
+    btn.textContent='✦ Check In';
+    btn.style.opacity='1';
+    btn.style.cursor='pointer';
+    status.textContent='Could not connect — please try again.';
+    status.style.color='#e57373';
+  });
+}
+
+function restoreCheckinState(){
+  if(!activeGuest) return;
+  const name=activeGuest.name||activeGuest.alias||Object.values(activeGuest)[0];
+  const btn=document.getElementById('checkinBtn');
+  const status=document.getElementById('checkinStatus');
+  if(!btn) return;
+  if(localStorage.getItem('checkedIn_'+name)){
+    btn.textContent='✓ Checked In';
+    btn.style.borderColor='#4a9e9e';
+    btn.style.color='#4a9e9e';
+    btn.dataset.done='1';
+    status.textContent='You're already on the list — enjoy the celebration!';
+  }
+}
+
+// ════════════════════════════════════
+// UTILS
+// ════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Close dropdown when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-container')) document.getElementById('suggestions').style.display='none';
+});
+</script>
+</body>
+</html>

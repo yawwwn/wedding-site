@@ -1,0 +1,8 @@
+{
+  "name": "wedding-site",
+  "version": "1.0.0",
+  "description": "Wedding seating and check-in system",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0"
+  }
+}
