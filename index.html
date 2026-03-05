@@ -232,6 +232,28 @@ let fpElements=[],fpReady=false;
   }catch(e){console.warn(e);}
 })();
 
+// Load floor plan from DB (works cross-device)
+fetch('/.netlify/functions/floorplan')
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.elements&&data.elements.length){
+      fpElements=data.elements;
+      fpReady=true;
+      // Update localStorage cache
+      localStorage.setItem('weddingFP',JSON.stringify(data));
+    }
+  })
+  .catch(()=>{}); // silently fall back to localStorage version
+
+// Load stations + menu from DB settings
+fetch('/.netlify/functions/settings')
+  .then(r=>r.json())
+  .then(s=>{
+    if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
+    if(s.menuData){try{MENU=JSON.parse(s.menuData);}catch(e){}}
+  })
+  .catch(()=>{});
+
 // Disable search while guests load from DB
 const searchInput=document.getElementById('searchInput');
 searchInput.disabled=true;
