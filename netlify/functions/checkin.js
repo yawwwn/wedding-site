@@ -19,9 +19,13 @@ exports.handler = async (event) => {
   )`;
 
   // DELETE — remove check-in
-  if (event.httpMethod === 'DELETE') {
-    const { name } = JSON.parse(event.body);
-    await sql`DELETE FROM checkins WHERE LOWER(name) = LOWER(${name})`;
+if (event.httpMethod === 'DELETE') {
+    const body = JSON.parse(event.body);
+    if (body.clearAll) {
+      await sql`DELETE FROM checkins`;
+    } else {
+      await sql`DELETE FROM checkins WHERE LOWER(name) = LOWER(${body.name})`;
+    }
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
 
