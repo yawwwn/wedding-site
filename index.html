@@ -425,18 +425,16 @@ function renderTablemates(mates,guest,checkedNames,luckyNames){
       +'<div class="tablemate-avatar" style="'+(isYou?'background:var(--gold);color:white;border-color:var(--gold);':'')+'">'
       +n.charAt(0).toUpperCase()+'</div>'
       +'<div style="flex:1;min-width:0;">'
-        +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
           +'<span class="tablemate-name">'+esc(n)+'</span>'
-          +(alias&&alias!==n?'<span style="font-size:1.1rem;color:var(--mid);">('+esc(alias)+')</span>':'')
+          +(alias&&alias!==n?'<span style="font-size:.9rem;color:var(--mid);">('+esc(alias)+')</span>':'')
           +(isYou?'<span class="you-badge">You</span>':'')
-          +(rel?'<span style="font-size:.9rem;color:var(--mid);margin-left:auto;white-space:nowrap;">'+esc(rel)+'</span>':'')
-        +'</div>'
-        +'<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">'
-          +'<span style="font-size:.72rem;padding:1px 7px;border-radius:10px;'
+          +(rel?'<span style="font-size:.82rem;color:var(--mid);margin-left:auto;white-space:nowrap;">'+esc(rel)+'</span>':'')
+          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'
             +(isChecked?'background:rgba(74,158,158,.15);color:#4a9e9e;border:1px solid rgba(74,158,158,.3);'
                        :'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')
             +'">'+(isChecked?'&#10003; Checked in':'Not checked in')+'</span>'
-          +'<span style="font-size:.72rem;padding:1px 7px;border-radius:10px;'
+          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'
             +(isLucky?'background:rgba(201,169,110,.15);color:var(--gold-dark);border:1px solid var(--gold-light);'
                      :'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')
             +'">'+(isLucky?'🎟 Ticket collected':'No ticket yet')+'</span>'
