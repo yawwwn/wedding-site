@@ -241,6 +241,11 @@ let fpElements=[], fpReady=false;
 })();
 
 // Load guests from Neon DB (overrides localStorage if available)
+// Disable search while guests load
+const searchInput = document.getElementById('searchInput');
+searchInput.disabled = true;
+searchInput.placeholder = 'Loading guest list…';
+
 fetch('/.netlify/functions/get-guests')
   .then(r=>r.json())
   .then(data=>{
@@ -253,8 +258,12 @@ fetch('/.netlify/functions/get-guests')
     }
   })
   .catch(()=>{
-    // DB unavailable, fall back to localStorage guests already loaded
     if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
+  })
+  .finally(()=>{
+    searchInput.disabled = false;
+    searchInput.placeholder = 'Your name or nickname…';
+    searchInput.focus();
   });
 
 if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
