@@ -212,9 +212,9 @@ body::before{content:'';position:fixed;inset:0;background:
 </div>
 
 <script>
-// ════════════════════════════════════
+// ========================================
 // DATA
-// ════════════════════════════════════
+// ========================================
 let guests=[],columns=[],activeGuest=null,recognition=null;
 let STATION_INFO={},MENU={mode:'text',image:null,note:'',courses:[]};
 let fpElements=[],fpReady=false;
@@ -281,9 +281,9 @@ fetch('/.netlify/functions/get-guests')
 
 if(!guests.length) document.getElementById('noGuestsNotice').style.display='';
 
-// ════════════════════════════════════
+// ========================================
 // SEARCH
-// ════════════════════════════════════
+// ========================================
 function matchGuest(g,q){
   return Object.entries(g).some(([k,v])=>
     k.toLowerCase()!=='table'&&String(v).toLowerCase().includes(q)
@@ -344,9 +344,9 @@ function doSearch(){
   showToast('No guest found — try your name, nickname or unit');
 }
 
-// ════════════════════════════════════
+// ========================================
 // RESULT
-// ════════════════════════════════════
+// ========================================
 function showResult(guest){
   activeGuest=guest;
   const name=guest.name||guest.alias||Object.values(guest)[0];
@@ -431,23 +431,17 @@ function renderTablemates(mates,guest,checkedNames,luckyNames){
           +(alias&&alias!==n?'<span style="font-size:.9rem;color:var(--mid);">('+esc(alias)+')</span>':'')
           +(isYou?'<span class="you-badge">You</span>':'')
           +(rel?'<span style="font-size:.82rem;color:var(--mid);margin-left:auto;white-space:nowrap;">'+esc(rel)+'</span>':'')
-          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'
-            +(isChecked?'background:rgba(74,158,158,.15);color:#4a9e9e;border:1px solid rgba(74,158,158,.3);'
-                       :'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')
-            +'">'+(isChecked?'&#10003; Checked in':'Not checked in')+'</span>'
-          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'
-            +(isLucky?'background:rgba(201,169,110,.15);color:var(--gold-dark);border:1px solid var(--gold-light);'
-                     :'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')
-            +'">'+(isLucky?'🎟 Ticket collected':'No ticket yet')+'</span>'
+          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'+(isChecked?'background:rgba(74,158,158,.15);color:#4a9e9e;border:1px solid rgba(74,158,158,.3);':'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')+'">'+(isChecked?'&#10003; Checked in':'Not checked in')+'</span>'
+          +'<span style="font-size:.75rem;padding:2px 9px;border-radius:10px;white-space:nowrap;'+(isLucky?'background:rgba(201,169,110,.15);color:var(--gold-dark);border:1px solid var(--gold-light);':'background:rgba(180,160,140,.1);color:var(--mid);border:1px solid var(--blush-deep);')+'">'+(isLucky?'🎟 Ticket collected':'No ticket yet')+'</span>'
         +'</div>'
       +'</div>'
       +'</li>';
   }).join('')+'</ul>';
 }
 
-// ════════════════════════════════════
+// ========================================
 // CHECK-IN
-// ════════════════════════════════════
+// ========================================
 function checkIn(){
   const btn=document.getElementById('checkinBtn');
   const status=document.getElementById('checkinStatus');
@@ -523,7 +517,7 @@ function restoreCheckinState(){
   const btn=document.getElementById('checkinBtn');
   const status=document.getElementById('checkinStatus');
   if(!btn) return;
-  // Verify against DB, don't trust localStorage alone
+  // Verify against DB - do not trust localStorage alone
   fetch('/.netlify/functions/attendance')
     .then(r=>r.json())
     .then(data=>{
@@ -566,9 +560,9 @@ function restoreCheckinState(){
     });
 }
 
-// ════════════════════════════════════
+// ========================================
 // LUCKY DRAW
-// ════════════════════════════════════
+// ========================================
 function toggleLuckyDraw(){
   const btn=document.getElementById('luckyDrawBtn');
   const status=document.getElementById('luckyDrawStatus');
@@ -681,9 +675,9 @@ function restoreLuckyDrawState(){
     });
 }
 
-// ════════════════════════════════════
+// ========================================
 // ZOOM + PAN
-// ════════════════════════════════════
+// ========================================
 let fpZoom=1,fpBaseVB=null,fpVB=null;
 function getVB(svg){return svg.getAttribute('viewBox').split(' ').map(Number);}
 function setVB(svg,[x,y,w,h]){svg.setAttribute('viewBox',x+' '+y+' '+w+' '+h);fpVB=[x,y,w,h];}
@@ -742,9 +736,9 @@ function zoomFP(delta){
   });
 })();
 
-// ════════════════════════════════════
+// ========================================
 // FLOOR PLAN
-// ════════════════════════════════════
+// ========================================
 function fpGW(el){return ['round-table','circle-el','champagne'].includes(el.type)?(el.size||70):(el.w||100);}
 function fpGH(el){return ['round-table','circle-el','champagne'].includes(el.type)?(el.size||70):(el.h||60);}
 function fpRgba(hex,a){
@@ -753,11 +747,7 @@ function fpRgba(hex,a){
   const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
   return 'rgba('+r+','+g+','+b+','+a+')';
 }
-sorted.forEach(el=>{
-    const w=fpGW(el),eh=fpGH(el);
-    const x=el.x,y=el.y,cx=x+w/2,cy=y+eh/2;
-    const rot=el.rot||0,act=isAct(el),clk=hasStn(el.label),c=el.color||'#c9a96e';
-    const fs=(auto)=>el.fontSize||auto;  // ← add this line
+function renderFloorPlan(activeTable){
   const svg=document.getElementById('floorplanSVG');if(!svg)return;
   if(!fpReady||!fpElements.length){
     svg.setAttribute('viewBox','0 0 760 520');
@@ -800,6 +790,7 @@ sorted.forEach(el=>{
     const w=fpGW(el),eh=fpGH(el);
     const x=el.x,y=el.y,cx=x+w/2,cy=y+eh/2;
     const rot=el.rot||0,act=isAct(el),clk=hasStn(el.label),c=el.color||'#c9a96e';
+    const fs=(auto)=>el.fontSize||auto;
     const safeLabel=(el.label||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const gAttr=clk?' style="cursor:pointer;" onclick="openStationPopup(\''+safeLabel+'\')"':'';
     const glow=act?' filter="drop-shadow(0 0 '+Math.round(Math.max(w,eh)*.1)+'px '+c+')"':'';
@@ -931,9 +922,9 @@ sorted.forEach(el=>{
   svg.innerHTML=h;
 }
 
-// ════════════════════════════════════
+// ========================================
 // MENU
-// ════════════════════════════════════
+// ========================================
 function renderMenu(){
   const sec=document.getElementById('menuSection'),cont=document.getElementById('menuContent');
   sec.style.display='none';
@@ -957,9 +948,9 @@ const hasImgs=!!(MENU.images&&MENU.images.length)||!!MENU.image;
   cont.innerHTML=html;
 }
 
-// ════════════════════════════════════
+// ========================================
 // STATION POPUP
-// ════════════════════════════════════
+// ========================================
 function getStation(label){
   if(!label)return null;
   const k=label.toLowerCase().trim();
@@ -983,16 +974,16 @@ function closeStationPopup(){
   document.body.style.overflow='';
 }
 
-// ════════════════════════════════════
+// ========================================
 // LIGHTBOX
-// ════════════════════════════════════
+// ========================================
 function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLightbox();closeStationPopup();}});
 
-// ════════════════════════════════════
+// ========================================
 // VOICE
-// ════════════════════════════════════
+// ========================================
 function toggleVoice(){
   if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){showToast('Voice not supported on this browser');return;}
   if(recognition){recognition.stop();recognition=null;resetVoice();return;}
@@ -1013,9 +1004,9 @@ function resetVoice(){
   recognition=null;
 }
 
-// ════════════════════════════════════
+// ========================================
 // UTILS
-// ════════════════════════════════════
+// ========================================
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
