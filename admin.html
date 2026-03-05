@@ -235,6 +235,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
   <div class="tab" onclick="switchTab('fp',this)">🗺 Floor Plan</div>
   <div class="tab" onclick="switchTab('attendance',this);loadAttendance()">✅ Attendance</div>
   <div class="tab" onclick="switchTab('luckydraw',this);loadLuckyDraw()">🎟 Lucky Draw</div>
+  <div class="tab" onclick="switchTab('settings',this);loadSettings()">⚙️ Settings</div>
 </div>
 
 <!-- TAB BODY -->
@@ -588,6 +589,46 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
     </div>
   </div>
 
+<!-- SETTINGS -->
+  <div class="tab-panel" id="settingsPanel">
+    <div style="max-width:600px;margin:0 auto;">
+      <div class="section">
+        <div class="section-head">Guest Page Controls</div>
+        <div class="section-body">
+          <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:20px;">Control which buttons are visible to guests on the seating page.</p>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:.85rem;color:var(--text);margin-bottom:3px;">✓ Check-In Button</div>
+              <div style="font-size:.72rem;color:var(--text-dim);">Allow guests to check themselves in</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+              <input type="checkbox" id="toggleCheckin" onchange="saveSetting('checkin_enabled', this.checked)"
+                style="opacity:0;width:0;height:0;position:absolute;">
+              <span id="toggleCheckinTrack" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:background .2s;"></span>
+              <span id="toggleCheckinThumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:.85rem;color:var(--text);margin-bottom:3px;">🎟 Lucky Draw Button</div>
+              <div style="font-size:.72rem;color:var(--text-dim);">Allow guests to collect lucky draw tickets</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+              <input type="checkbox" id="toggleLuckyDraw" onchange="saveSetting('luckydraw_enabled', this.checked)"
+                style="opacity:0;width:0;height:0;position:absolute;">
+              <span id="toggleLuckyDrawTrack" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:background .2s;"></span>
+              <span id="toggleLuckyDrawThumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></span>
+            </label>
+          </div>
+
+          <div id="settingsStatus" style="margin-top:16px;font-size:.75rem;color:#4a9e9e;min-height:18px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </div><!-- /tab-body -->
 </div><!-- /app -->
 
@@ -1493,6 +1534,52 @@ function exportLuckyDrawCSV(){
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='luckydraw.csv';
   a.click();
+}
+// ════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════
+function loadSettings(){
+  fetch('/.netlify/functions/settings')
+    .then(r=>r.json())
+    .then(data=>{
+      applyToggle('toggleCheckin', data.checkin_enabled !== 'false');
+      applyToggle('toggleLuckyDraw', data.luckydraw_enabled !== 'false');
+    })
+    .catch(()=>showToast('Could not load settings'));
+}
+
+function applyToggle(id, enabled){
+  const cb=document.getElementById(id);
+  const track=document.getElementById(id+'Track');
+  const thumb=document.getElementById(id+'Thumb');
+  if(!cb) return;
+  cb.checked=enabled;
+  track.style.background=enabled?'var(--gold)':'var(--border)';
+  thumb.style.transform=enabled?'translateX(20px)':'translateX(0)';
+}
+
+function saveSetting(key, value){
+  const strVal = value ? 'true' : 'false';
+  // Update toggle UI immediately
+  const id = key==='checkin_enabled' ? 'toggleCheckin' : 'toggleLuckyDraw';
+  applyToggle(id, value);
+
+  const status=document.getElementById('settingsStatus');
+  status.textContent='Saving…';
+  fetch('/.netlify/functions/settings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({[key]: strVal})
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    status.textContent='✓ Saved — changes visible to guests immediately';
+    setTimeout(()=>status.textContent='', 3000);
+  })
+  .catch(()=>{
+    status.textContent='Could not save — please try again';
+    status.style.color='#e57373';
+  });
 }
   
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
