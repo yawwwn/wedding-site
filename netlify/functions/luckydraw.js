@@ -19,8 +19,12 @@ exports.handler = async (event) => {
   )`;
 
   if (event.httpMethod === 'DELETE') {
-    const { name } = JSON.parse(event.body);
-    await sql`DELETE FROM luckydraw WHERE LOWER(name) = LOWER(${name})`;
+    const body = JSON.parse(event.body);
+    if (body.clearAll) {
+      await sql`DELETE FROM luckydraw`;
+    } else {
+      await sql`DELETE FROM luckydraw WHERE LOWER(name) = LOWER(${body.name})`;
+    }
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
 
