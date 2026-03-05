@@ -817,7 +817,7 @@ function renderFloorPlan(activeTable){
       }
       const fill=act?fpRgba(c,.35):fpRgba(c,.14),sk=act?c:fpRgba(c,.7),sw=act?2.5:1.8;
       h+=dots+'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'" stroke="'+sk+'" stroke-width="'+sw+'"/>';
-      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+(act?Math.min(14,r*.55):Math.min(11,r*.45))+'" fill="'+(act?c:fpRgba(c,.85))+'" text-anchor="middle" dominant-baseline="middle" font-weight="'+(act?'800':'400')+'" letter-spacing=".04em">'+(el.label||'')+'</text>';
+      h+='<text x="'+cx+'" y="'+cy+'" font-family="Jost,sans-serif" font-size="'+fs(act?Math.min(14,r*.55):Math.min(11,r*.45))+'" fill="'+(act?c:fpRgba(c,.85))+'" text-anchor="middle" dominant-baseline="middle" font-weight="'+(act?'800':'400')+'" letter-spacing=".04em">'+(el.label||'')+'</text>';
       if(act) h+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+6)+'" fill="none" stroke="'+c+'" stroke-width="2" opacity=".5" stroke-dasharray="4,3"/>';
     } else if(el.type==='rect-table'){
       const s=el.seats||6,t=Math.ceil(s/2),b=Math.floor(s/2);
