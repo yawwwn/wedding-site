@@ -233,17 +233,17 @@ let fpElements=[],fpReady=false;
 })();
 
 // Load floor plan from DB (works cross-device)
-fetch('/.netlify/functions/floorplan')
+const fpReadyPromise = fetch('/.netlify/functions/floorplan')
   .then(r=>r.json())
   .then(data=>{
     if(data.elements&&data.elements.length){
       fpElements=data.elements;
       fpReady=true;
-      // Update localStorage cache
       localStorage.setItem('weddingFP',JSON.stringify(data));
     }
   })
-  .catch(()=>{}); // silently fall back to localStorage version
+  .catch(()=>{});
+  // silently fall back to localStorage version
 
 // Load stations + menu from DB settings
 fetch('/.netlify/functions/settings')
@@ -360,9 +360,16 @@ function showResult(guest){
   document.getElementById('tablemateList').innerHTML=
     '<ul class="tablemate-list"><li style="color:var(--mid);font-size:.75rem;font-style:italic;padding:8px 0;">Loading status...</li></ul>';
 
-  renderFloorPlan(table);
   renderMenu();
   showPage('resultPage');
+  // Wait for floor plan data if not yet loaded, then render
+  if(fpReady){
+    renderFloorPlan(table);
+  } else {
+    document.querySelector('.floorplan-wrap svg').innerHTML=
+      '<text x="50%" y="50%" font-family="Jost,sans-serif" font-size="13" fill="#b0a090" text-anchor="middle" dominant-baseline="middle" letter-spacing=".15em">Loading map…</text>';
+    fpReadyPromise.then(()=>renderFloorPlan(table));
+  }
   setTimeout(()=>document.querySelector('.result-header').scrollIntoView({behavior:'smooth',block:'start'}),120);
 
   // Load tablemate check-in + lucky draw status
