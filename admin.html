@@ -1537,13 +1537,23 @@ function exportLuckyDrawCSV(){
 // SETTINGS
 // ════════════════════════════════════
 function loadSettings(){
+  // Detach listeners temporarily to prevent onchange firing during applyToggle
+  const c1 = document.getElementById('toggleCheckin');
+  const c2 = document.getElementById('toggleLuckyDraw');
+  const old1 = c1.onchange; const old2 = c2.onchange;
+  c1.onchange = null; c2.onchange = null;
+  
   fetch('/.netlify/functions/settings')
     .then(r=>r.json())
     .then(data=>{
+      console.log('Settings from DB:', data); // ← check this in console
       applyToggle('toggleCheckin', data.checkin_enabled !== 'false');
       applyToggle('toggleLuckyDraw', data.luckydraw_enabled !== 'false');
     })
-    .catch(()=>showToast('Could not load settings'));
+    .catch(()=>showToast('Could not load settings'))
+    .finally(()=>{
+      c1.onchange = old1; c2.onchange = old2;
+    });
 }
 
 function applyToggle(id, enabled){
