@@ -639,8 +639,13 @@ function switchTab(id, el){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById(id+'Panel').classList.add('active');
-  if(id==='fp') fpRender();
+  // Stop auto-refresh when leaving attendance tab
+  if(id!=='attendance' && attendanceTimer){
+    clearInterval(attendanceTimer);
+    attendanceTimer=null;
+  }
 }
+  
 
 // ════════════════════════════════════
 // GUESTS
