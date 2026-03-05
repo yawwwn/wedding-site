@@ -310,18 +310,22 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.55;}
         </div>
         <!-- Image mode -->
         <div id="menuImgSection" style="display:none;">
+          <div style="margin-bottom:10px;">
+            <div class="fl" style="margin-bottom:6px;">Paste image URLs (Imgur etc.) — one per line</div>
+            <textarea class="fi" id="menuImgUrls" rows="4" placeholder="https://i.imgur.com/abc.jpg&#10;https://i.imgur.com/def.jpg" style="font-size:.75rem;" oninput="handleMenuUrlInput(this.value)"></textarea>
+          </div>
+          <div style="font-size:.65rem;color:var(--text-dim);text-align:center;margin:6px 0;">— or upload files —</div>
           <div class="file-drop" onclick="document.getElementById('menuImgFile').click()"
             ondragover="event.preventDefault();this.classList.add('dragover')"
             ondragleave="this.classList.remove('dragover')"
-            ondrop="event.preventDefault();this.classList.remove('dragover');handleMenuImg(event.dataTransfer.files[0])">
+            ondrop="event.preventDefault();this.classList.remove('dragover');handleMenuImgFiles(event.dataTransfer.files)">
             <div class="file-drop-icon">🖼</div>
-            <p>Drop PNG/JPG here or click to browse</p>
-            <input type="file" id="menuImgFile" accept="image/*" style="display:none" onchange="handleMenuImg(this.files[0])">
+            <p>Drop images here or click to browse (select multiple)</p>
+            <input type="file" id="menuImgFile" accept="image/*" multiple style="display:none" onchange="handleMenuImgFiles(this.files)">
           </div>
-          <img id="menuImgPreview" class="menu-img-preview" src="" alt="Menu Preview">
-          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-            <button class="btn sm" onclick="document.getElementById('menuImgFile').click()">Change Image</button>
-            <button class="btn sm danger" id="menuImgClear" onclick="clearMenuImg()" style="display:none;">Remove</button>
+          <div id="menuImgPreviews" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+          <div style="margin-top:8px;">
+            <button class="btn sm danger" id="menuImgClear" onclick="clearMenuImgs()" style="display:none;">Remove All</button>
           </div>
         </div>
         <!-- Text mode -->
@@ -889,9 +893,13 @@ function buildStationCard(key){
         <div class="fl">Photo</div>
         <div class="photo-row">
           <img id="sthumb-${esc(key)}" class="photo-thumb${hasPhoto?' has-img':''}" src="${info.photo||''}" alt="">
-          <div>
-            <input type="file" accept="image/*" id="stfile-${esc(key)}" style="display:none" onchange="handleStationPhoto('${esc(key)}',this.files[0])">
-            <button class="btn sm" onclick="document.getElementById('stfile-${esc(key)}').click()">Upload Photo</button>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="file" accept="image/*" id="stfile-${esc(key)}" style="display:none" onchange="handleStationPhoto('${esc(key)}',this.files[0])">
+              <button class="btn sm" onclick="document.getElementById('stfile-${esc(key)}').click()">Upload</button>
+              <span style="font-size:.65rem;color:var(--text-dim);">or</span>
+              <input type="text" class="fi" id="sturl-${esc(key)}" placeholder="Paste image URL (e.g. https://i.imgur.com/...)" style="flex:1;font-size:.72rem;" value="${info.photo&&info.photo.startsWith('http')?info.photo:''}" oninput="handleStationUrl('${esc(key)}',this.value)">
+            </div>
             <div class="photo-clear${hasPhoto?' visible':''}" id="stclr-${esc(key)}" onclick="clearStationPhoto('${esc(key)}')">Remove</div>
           </div>
         </div>
@@ -938,6 +946,20 @@ function handleStationPhoto(key,file){
   };
   r.readAsDataURL(file);
 }
+function handleStationUrl(key,url){
+  const val=url.trim();
+  if(!STATION_INFO[key]) STATION_INFO[key]={title:key,desc:'',photo:null};
+  STATION_INFO[key].photo=val||null;
+  const thumb=document.getElementById('sthumb-'+key);
+  const clr=document.getElementById('stclr-'+key);
+  if(val){
+    if(thumb){thumb.src=val;thumb.classList.add('has-img');}
+    if(clr) clr.classList.add('visible');
+  } else {
+    if(thumb){thumb.src='';thumb.classList.remove('has-img');}
+    if(clr) clr.classList.remove('visible');
+  }
+}
 function clearStationPhoto(key){
   if(STATION_INFO[key]) STATION_INFO[key].photo=null;
   const thumb=document.getElementById('sthumb-'+key);
@@ -952,10 +974,11 @@ function clearStationPhoto(key){
 function renderMenuEditor(){
   setMenuMode(MENU.mode||'text');
   document.getElementById('menuNote').value=MENU.note||'';
-  if(MENU.image){
-    const prev=document.getElementById('menuImgPreview');
-    prev.src=MENU.image; prev.classList.add('has-img');
-    document.getElementById('menuImgClear').style.display='';
+  if(!MENU.images&&MENU.image) MENU.images=[MENU.image]; // migrate old single image
+  if(MENU.images&&MENU.images.length){
+    const urlOnes=MENU.images.filter(s=>s.startsWith('http'));
+    if(urlOnes.length) document.getElementById('menuImgUrls').value=urlOnes.join('\n');
+    renderMenuPreviews();
   }
   renderCoursesEditor();
 }
@@ -966,23 +989,53 @@ function setMenuMode(mode){
   document.getElementById('menuTextSection').style.display=mode==='text'?'':'none';
   document.getElementById('menuImgSection').style.display=mode==='image'?'':'none';
 }
-function handleMenuImg(file){
-  if(!file) return;
-  const r=new FileReader();
-  r.onload=e=>{
-    MENU.image=e.target.result;
-    const prev=document.getElementById('menuImgPreview');
-    prev.src=e.target.result; prev.classList.add('has-img');
-    document.getElementById('menuImgClear').style.display='';
-    showToast('Menu image uploaded ✓');
-  };
-  r.readAsDataURL(file);
+function handleMenuUrlInput(val){
+  const urls=val.split('\n').map(s=>s.trim()).filter(Boolean);
+  MENU.images=urls;
+  MENU.image=urls[0]||null; // keep single for backwards compat
+  renderMenuPreviews();
 }
-function clearMenuImg(){
-  MENU.image=null;
-  const prev=document.getElementById('menuImgPreview');
-  prev.src=''; prev.classList.remove('has-img');
-  document.getElementById('menuImgClear').style.display='none';
+function handleMenuImgFiles(files){
+  if(!files||!files.length) return;
+  if(!MENU.images) MENU.images=[];
+  let loaded=0;
+  Array.from(files).forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      MENU.images.push(e.target.result);
+      MENU.image=MENU.images[0];
+      loaded++;
+      if(loaded===files.length){
+        renderMenuPreviews();
+        showToast(files.length+' image'+(files.length>1?'s':'')+' added ✓');
+      }
+    };
+    r.readAsDataURL(file);
+  });
+}
+function renderMenuPreviews(){
+  const imgs=MENU.images||( MENU.image?[MENU.image]:[]);
+  const cont=document.getElementById('menuImgPreviews');
+  const clr=document.getElementById('menuImgClear');
+  if(!imgs.length){cont.innerHTML='';if(clr)clr.style.display='none';return;}
+  cont.innerHTML=imgs.map((src,i)=>
+    `<div style="position:relative;">
+      <img src="${src}" style="width:100px;height:75px;object-fit:cover;border:1px solid var(--border);border-radius:2px;">
+      <span onclick="removeMenuImg(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:white;font-size:.6rem;padding:1px 5px;cursor:pointer;border-radius:2px;">✕</span>
+    </div>`
+  ).join('');
+  if(clr) clr.style.display='';
+}
+function removeMenuImg(i){
+  if(!MENU.images) return;
+  MENU.images.splice(i,1);
+  MENU.image=MENU.images[0]||null;
+  renderMenuPreviews();
+}
+function clearMenuImgs(){
+  MENU.images=[];MENU.image=null;
+  renderMenuPreviews();
+  document.getElementById('menuImgUrls').value='';
 }
 function addCourse(){
   if(!MENU.courses) MENU.courses=[];
