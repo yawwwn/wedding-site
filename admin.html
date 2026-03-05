@@ -1173,6 +1173,8 @@ function goLive(){
 // ════════════════════════════════════
 let allCheckins = [];
 
+let attendanceTimer=null;
+
 function loadAttendance(){
   const list=document.getElementById('attendanceList');
   list.innerHTML='<p style="color:var(--text-dim);font-style:italic;font-size:.82rem;">Loading…</p>';
@@ -1187,6 +1189,20 @@ function loadAttendance(){
     .catch(()=>{
       list.innerHTML='<p style="color:#e57373;font-size:.82rem;">Could not load — check your internet connection.</p>';
     });
+
+  // Auto-refresh every 15 seconds while on attendance tab
+  if(!attendanceTimer){
+    attendanceTimer=setInterval(()=>{
+      fetch('/.netlify/functions/attendance')
+        .then(r=>r.json())
+        .then(data=>{
+          allCheckins=data;
+          populateTableFilter();
+          renderAttendance(data);
+          renderTableSummary(data);
+        }).catch(()=>{});
+    }, 15000);
+  }
 }
 
 function populateTableFilter(){
