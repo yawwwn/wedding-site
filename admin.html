@@ -1742,7 +1742,8 @@ function loadSettings(){
       console.log('Settings from DB:', data); // ← check this in console
       applyToggle('toggleCheckin', data.checkin_enabled !== 'false');
       applyToggle('toggleLuckyDraw', data.luckydraw_enabled !== 'false');
-    if(data.couplePhoto){
+    // Guard: ignore corrupted 'true'/'false' values from old bug
+    if(data.couplePhoto && data.couplePhoto !== 'true' && data.couplePhoto !== 'false'){
       document.getElementById('couplePhotoUrl').value=data.couplePhoto;
       previewCouplePhoto(data.couplePhoto);
     }
@@ -1764,10 +1765,16 @@ function applyToggle(id, enabled){
 }
 
 function saveSetting(key, value){
-  const strVal = value ? 'true' : 'false';
-  // Update toggle UI immediately
-  const id = key==='checkin_enabled' ? 'toggleCheckin' : 'toggleLuckyDraw';
-  applyToggle(id, value);
+  // For boolean toggles, convert to 'true'/'false' string
+  // For string values (like couplePhoto URL), save as-is
+  const isBool = key==='checkin_enabled' || key==='luckydraw_enabled';
+  const strVal = isBool ? (value ? 'true' : 'false') : String(value||'');
+
+  // Update toggle UI only for boolean settings
+  if(isBool){
+    const id = key==='checkin_enabled' ? 'toggleCheckin' : 'toggleLuckyDraw';
+    applyToggle(id, value);
+  }
 
   const status=document.getElementById('settingsStatus');
   status.textContent='Saving…';
