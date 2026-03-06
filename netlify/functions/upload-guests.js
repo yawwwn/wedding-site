@@ -18,23 +18,18 @@ exports.handler = async (event) => {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid data' }) };
       }
 
-      // Ensure table exists with correct schema
-      await sql`CREATE TABLE IF NOT EXISTS guests (
-        id SERIAL PRIMARY KEY,
-        name TEXT,
-        table_no TEXT,
-        extra JSONB,
-        uploaded_at TIMESTAMPTZ DEFAULT now()
-      )`;
-
       // Clear ALL existing guests — every upload is a full fresh replace
       await sql`DELETE FROM guests`;
 
-      // Insert all guests fresh into the extra column
+      // Insert using the exact column names the table already has
       for (const guest of guests) {
-        const name = guest.name || guest.Name || guest.alias || Object.values(guest)[0] || '';
-        const table_no = guest.table || guest.Table || guest.table_no || '';
-        await sql`INSERT INTO guests (name, table_no, extra) VALUES (${name}, ${table_no}, ${JSON.stringify(guest)})`;
+        await sql`INSERT INTO guests ("Name", "alias", "table", "relationship")
+          VALUES (
+            ${guest.Name || guest.name || ''},
+            ${guest.alias || guest.Alias || ''},
+            ${guest.table || guest.Table || ''},
+            ${guest.relationship || guest.Relationship || ''}
+          )`;
       }
 
       return {
