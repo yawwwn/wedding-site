@@ -7,33 +7,27 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
 
   try {
-const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
-    
-    await sql`
-      CREATE TABLE IF NOT EXISTS guests (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        table_no TEXT,
-        extra JSONB,
-        uploaded_at TIMESTAMPTZ DEFAULT now()
-      )
-    `;
+    const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
 
-    const rows = await sql`SELECT extra FROM guests ORDER BY id ASC`;
+    const rows = await sql`SELECT "Name", "alias", "table", "relationship" FROM guests ORDER BY id ASC`;
 
-    // Return the full guest objects from JSONB
-    const guests = rows.map(r => r.extra);
+    // Map to consistent lowercase keys that the frontend expects
+    const guests = rows.map(r => ({
+      name: r.Name || r.name || '',
+      alias: r.alias || '',
+      table: r.table || '',
+      relationship: r.relationship || ''
+    }));
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ guests })
     };
+
   } catch (err) {
     console.error('get-guests error:', err);
     return {
