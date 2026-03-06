@@ -18,35 +18,33 @@ exports.handler = async (event) => {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid data' }) };
       }
 
-      // Clear ALL existing guests — every upload is a full fresh replace
-      await sql`DELETE FROM guests`;
+      // Drop and recreate with known schema — guaranteed clean slate every upload
+      await sql`DROP TABLE IF EXISTS guests`;
+      await sql`CREATE TABLE guests (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        alias TEXT,
+        tableno TEXT,
+        relationship TEXT,
+        uploaded_at TIMESTAMPTZ DEFAULT now()
+      )`;
 
-      // Insert using the exact column names the table already has
       for (const guest of guests) {
-        await sql`INSERT INTO guests ("Name", "alias", "table", "relationship")
-          VALUES (
-            ${guest.Name || guest.name || ''},
-            ${guest.alias || guest.Alias || ''},
-            ${guest.table || guest.Table || ''},
-            ${guest.relationship || guest.Relationship || ''}
-          )`;
+        const name         = guest.Name         || guest.name         || '';
+        const alias        = guest.Alias        || guest.alias        || '';
+        const tableno      = guest.Table        || guest.table        || guest.table_no || '';
+        const relationship = guest.Relationship || guest.relationship || '';
+        await sql`INSERT INTO guests (name, alias, tableno, relationship)
+          VALUES (${name}, ${alias}, ${tableno}, ${relationship})`;
       }
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ ok: true, count: guests.length })
-      };
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, count: guests.length }) };
     }
 
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
   } catch (err) {
     console.error('upload-guests error:', err);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message })
-    };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
 };
