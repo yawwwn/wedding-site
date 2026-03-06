@@ -260,7 +260,7 @@ const settingsReadyPromise = fetch('/.netlify/functions/settings')
   .then(s=>{
     if(s.stationInfo){try{STATION_INFO=JSON.parse(s.stationInfo);}catch(e){}}
     if(s.menuData){try{MENU=JSON.parse(s.menuData);}catch(e){}}
-    if(s.couplePhoto){applyCouplePhoto(s.couplePhoto);}
+    if(s.couplePhoto && s.couplePhoto !== 'true' && s.couplePhoto !== 'false'){applyCouplePhoto(s.couplePhoto);}
   })
   .catch(()=>{});
 
